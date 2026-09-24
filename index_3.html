@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Artists Connect</title>
+<meta name="description" content="College Artists Connect is a national network of student-run talent agencies. Find your campus chapter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --ink: #1b1a17;
+    --muted: #6b665d;
+    --line: #e6e0d6;
+    --accent: #d9481e;
+    --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141312;
+      --surface: #1e1c1a;
+      --ink: #f3efe8;
+      --muted: #a39d93;
+      --line: #2f2c28;
+      --accent: #f06a3f;
+      --accent-ink: #141312;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  header.nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0;
+  }
+  .logo { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: 20px; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .nav a.link { text-decoration: none; color: var(--muted); font-weight: 500; margin-left: 20px; }
+  .nav a.link:hover { color: var(--ink); }
+
+  .hero { padding: 72px 0 56px; }
+  .eyebrow { color: var(--accent); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
+  h1 {
+    font-family: Fraunces, Georgia, serif; font-weight: 800;
+    font-size: clamp(40px, 7vw, 76px); line-height: 1.02; margin: 12px 0 20px;
+    letter-spacing: -0.02em;
+  }
+  .lede { font-size: 19px; color: var(--muted); max-width: 620px; margin: 0 0 32px; }
+  .btn {
+    display: inline-block; background: var(--accent); color: var(--accent-ink);
+    padding: 13px 22px; border-radius: 999px; font-weight: 600; text-decoration: none;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); margin-left: 8px; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: Fraunces, Georgia, serif; font-size: 34px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+
+  .search {
+    width: 100%; max-width: 420px; padding: 12px 16px; font: inherit;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .card .tag { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+  .card h3 { margin: 0; font-size: 19px; }
+  .card .school { color: var(--muted); font-size: 15px; margin: 0 0 10px; }
+  .card .links { margin-top: auto; display: flex; gap: 14px; flex-wrap: wrap; }
+  .card .links a { font-weight: 600; font-size: 14px; text-decoration: none; border-bottom: 1.5px solid var(--accent); }
+  .empty { color: var(--muted); }
+
+  .about p { max-width: 680px; font-size: 17px; }
+  footer { padding: 40px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 520px) {
+    .btn.ghost { margin: 10px 0 0; }
+    .nav a.link { margin-left: 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="/">College Artists <span>Connect</span></a>
+      <nav>
+        <a class="link" href="#chapters">Chapters</a>
+        <a class="link" href="#about">About</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <div class="eyebrow">Student-run talent agencies, nationwide</div>
+      <h1>Find your campus chapter.</h1>
+      <p class="lede">College Artists Connect links student filmmakers, musicians, and visual artists with the people and opportunities that launch careers — one campus at a time.</p>
+      <a class="btn" href="#chapters">Browse chapters</a>
+      <a class="btn ghost" href="#about">Our story</a>
+    </div>
+  </div>
+
+  <section id="chapters">
+    <div class="wrap">
+      <h2>Chapters</h2>
+      <p class="sub">Each chapter runs independently. Tap through to follow them.</p>
+      <input class="search" id="q" type="search" placeholder="Search by school, city, or state" aria-label="Search chapters">
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <div class="wrap">
+      <h2>Our story</h2>
+      <p>In 2025, five sophomores at the University of Texas at Austin founded Longhorn Artists Connect — the first-ever student-run talent agency. Within a year, students at other schools started chapters of their own, and College Artists Connect was born.</p>
+      <p>Want to start a chapter at your school? Reach out and we'll help you get going.</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <footer>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</footer>
+  </div>
+
+<script>
+  /* ============================================================
+     EDIT CHAPTERS HERE — copy a block to add a new chapter.
+     Leave a link as "" to hide that button.
+     ============================================================ */
+  const chapters = [
+    {
+      name: "Longhorn Artists Connect",
+      school: "University of Texas at Austin",
+      location: "Austin, TX",
+      founding: true,
+      instagram: "",   // e.g. "https://instagram.com/longhornartistsconnect"
+      website: ""
+    },
+    // {
+    //   name: "Example Artists Connect",
+    //   school: "Example University",
+    //   location: "City, ST",
+    //   instagram: "https://instagram.com/example",
+    //   website: ""
+    // },
+  ];
+
+  const grid = document.getElementById("grid");
+  const q = document.getElementById("q");
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function render(filter = "") {
+    const f = filter.trim().toLowerCase();
+    const list = chapters
+      .filter(c => !f || [c.name, c.school, c.location].join(" ").toLowerCase().includes(f))
+      .sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
+    if (!list.length) { grid.innerHTML = '<p class="empty">No chapters match that search yet.</p>'; return; }
+    grid.innerHTML = list.map(c => `
+      <article class="card">
+        ${c.founding ? '<div class="tag">Founding chapter</div>' : `<div class="tag">${esc(c.location)}</div>`}
+        <h3>${esc(c.name)}</h3>
+        <p class="school">${esc(c.school)}${c.founding ? " · " + esc(c.location) : ""}</p>
+        <div class="links">
+          ${c.instagram ? `<a href="${esc(c.instagram)}" target="_blank" rel="noopener">Instagram →</a>` : ""}
+          ${c.website ? `<a href="${esc(c.website)}" target="_blank" rel="noopener">Website →</a>` : ""}
+        </div>
+      </article>`).join("");
+  }
+  q.addEventListener("input", e => render(e.target.value));
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  render();
+</script>
+</body>
+</html>
