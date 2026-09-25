@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Artists Connect</title>
+<meta name="description" content="College Artists Connect is a national network of student-run talent agencies. Find your campus chapter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: "Pragmatica Extended";
+    src: url("fonts/PragmaticaExt-Bold.woff2") format("woff2");
+    font-weight: 700; font-style: normal; font-display: swap;
+  }
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --ink: #1b1a17;
+    --muted: #6b665d;
+    --line: #e6e0d6;
+    --accent: #d9481e;
+    --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141312;
+      --surface: #1e1c1a;
+      --ink: #f3efe8;
+      --muted: #a39d93;
+      --line: #2f2c28;
+      --accent: #f06a3f;
+      --accent-ink: #141312;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  header.nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0;
+  }
+  .logo { font-family: "Pragmatica Extended", Inter, sans-serif; font-weight: 700; font-size: 20px; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .nav a.link { text-decoration: none; color: var(--muted); font-weight: 500; margin-left: 20px; }
+  .nav a.link:hover { color: var(--ink); }
+
+  .hero { padding: 72px 0 56px; }
+  .eyebrow { color: var(--accent); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
+  h1 {
+    font-family: "Pragmatica Extended", Inter, sans-serif; font-weight: 700;
+    font-size: clamp(32px, 6vw, 64px); line-height: 1.02; margin: 12px 0 20px;
+    letter-spacing: -0.02em;
+  }
+  .lede { font-size: 19px; color: var(--muted); max-width: 620px; margin: 0 0 32px; }
+  .btn {
+    display: inline-block; background: var(--accent); color: var(--accent-ink);
+    padding: 13px 22px; border-radius: 999px; font-weight: 600; text-decoration: none;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); margin-left: 8px; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: "Pragmatica Extended", Inter, sans-serif; font-weight: 700; font-size: 34px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+
+  .search {
+    width: 100%; max-width: 420px; padding: 12px 16px; font: inherit;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .card .tag { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+  .card h3 { margin: 0; font-size: 18px; font-family: "Pragmatica Extended", Inter, sans-serif; font-weight: 700; }
+  .card .school { color: var(--muted); font-size: 15px; margin: 0 0 10px; }
+  .card .links { margin-top: auto; display: flex; gap: 14px; flex-wrap: wrap; }
+  a.card { text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+  a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card.themed { background: var(--card-bg); color: var(--card-fg); border-color: var(--card-bg); }
+  .card.themed .tag, .card.themed .school { color: var(--card-fg); }
+  .card.themed .school { opacity: .85; }
+  .card.themed .links span { border-bottom-color: var(--card-fg); }
+  a.card.themed:hover { border-color: var(--card-fg); }
+  a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card .links span, .card .links a { font-weight: 600; font-size: 14px; text-decoration: none; border-bottom: 1.5px solid var(--accent); }
+  .empty { color: var(--muted); }
+
+
+  .apply-form { display: grid; gap: 16px; max-width: 480px; }
+  .apply-form label { display: grid; gap: 6px; font-weight: 600; font-size: 14px; }
+  .apply-form input {
+    width: 100%; padding: 12px 16px; font: inherit; font-weight: 400;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  }
+  .apply-form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .apply-form .btn { justify-self: start; border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+  .apply-form .btn:disabled { opacity: .6; cursor: default; }
+  .form-status { margin: 0; color: var(--muted); font-size: 15px; min-height: 1.6em; }
+
+  footer { padding: 40px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 520px) {
+    .btn.ghost { margin: 10px 0 0; }
+    .nav a.link { margin-left: 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="/">College Artists <span>Connect</span></a>
+      <nav>
+        <a class="link" href="#chapters">Chapters</a>
+        <a class="link" href="#apply">Apply</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <div class="eyebrow">Student-run talent agencies, nationwide</div>
+      <h1>Fostering collaboration between creatives.</h1>
+      <p class="lede">In 2025, five sophomores at the University of Texas at Austin founded Longhorn Artists Connect — the first-ever student-run talent agency. Within a year, students at other schools started chapters of their own, and College Artists Connect was born.</p>
+    </div>
+  </div>
+
+  <section id="chapters">
+    <div class="wrap">
+      <h2>Chapters</h2>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+
+  <section id="apply" class="apply">
+    <div class="wrap">
+      <h2>Apply for a Chapter</h2>
+      <p class="sub">Don't see your school? Bring College Artists Connect to your campus.</p>
+      <!-- TODO: replace YOUR_FORM_ID with your Formspree form ID (formspree.io) so submissions reach your inbox -->
+      <form class="apply-form" id="apply-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <label>Your Name
+          <input type="text" name="name" autocomplete="name" required>
+        </label>
+        <label>Your Email
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label>Your School
+          <input type="text" name="school" autocomplete="organization" required>
+        </label>
+        <input type="hidden" name="_subject" value="New chapter application">
+        <button class="btn" type="submit">Apply now</button>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <footer>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</footer>
+  </div>
+
+<script>
+  /* ============================================================
+     EDIT CHAPTERS HERE — copy a block to add a new chapter.
+     Leave a link as "" to hide that button.
+     ============================================================ */
+  const chapters = [
+    {
+      name: "Longhorn Artists Connect",
+      school: "University of Texas at Austin",
+      location: "Austin, TX",
+      founding: true,
+      instagram: "https://www.instagram.com/longhornartistsconnect/",
+      colors: { bg: "#BF5700", fg: "#FFFFFF" },   // Texas burnt orange + white
+      website: ""
+    },
+    {
+      name: "Cal Artists Connect",
+      school: "UC Berkeley",
+      location: "Berkeley, CA",
+      instagram: "https://www.instagram.com/calartistsconnect/",
+      colors: { bg: "#002676", fg: "#FDB515" },   // Berkeley blue + California gold
+      website: ""
+    },
+    // {
+    //   name: "Example Artists Connect",
+    //   school: "Example University",
+    //   location: "City, ST",
+    //   instagram: "https://instagram.com/example",
+    //   website: ""
+    // },
+  ];
+
+  const grid = document.getElementById("grid");
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function render(filter = "") {
+    const f = filter.trim().toLowerCase();
+    const list = chapters
+      .filter(c => !f || [c.name, c.school, c.location].join(" ").toLowerCase().includes(f))
+      .sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
+    if (!list.length) { grid.innerHTML = '<p class="empty">No chapters match that search yet.</p>'; return; }
+    grid.innerHTML = list.map(c => `
+      <${c.instagram ? `a href="${esc(c.instagram)}" target="_blank" rel="noopener" aria-label="${esc(c.name)} on Instagram"` : "article"} class="card${c.colors ? " themed" : ""}"${c.colors ? ` style="--card-bg:${esc(c.colors.bg)};--card-fg:${esc(c.colors.fg)}"` : ""}>
+        ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
+        <h3>${esc(c.name)}</h3>
+        <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
+        <div class="links">
+          ${c.instagram ? `<span>Instagram →</span>` : ""}
+        </div>
+      </${c.instagram ? "a" : "article"}>`).join("");
+  }
+  const form = document.getElementById("apply-form");
+  const status = document.getElementById("form-status");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = form.querySelector("button");
+    btn.disabled = true; status.textContent = "Sending…";
+    try {
+      const res = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error();
+      form.reset();
+      status.textContent = "Thanks! We'll be in touch soon.";
+    } catch {
+      status.textContent = "Something went wrong. Please try again.";
+    } finally { btn.disabled = false; }
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  render();
+</script>
+</body>
+</html>
