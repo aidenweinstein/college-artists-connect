@@ -110,6 +110,25 @@
 
   footer { padding: 40px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
 
+  /* One section per chapter, in the school's colors, with its Instagram */
+  section.school-section { background: var(--sec-bg); color: var(--sec-fg); border-top: 0; padding: 72px 0; }
+  .school-section .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 48px; align-items: start; }
+  .school-info { position: sticky; top: 32px; }
+  .school-section .tag { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
+  .school-section h2 { margin: 8px 0 10px; font-size: clamp(28px, 4vw, 40px); }
+  .school-section .school { margin: 0 0 28px; opacity: .85; }
+  .school-section .btn { background: var(--sec-fg); color: var(--sec-bg); }
+  .ig-embed { background: #fff; border-radius: 14px; overflow: hidden; container-type: inline-size; }
+  /* Instagram's profile embed is a header plus a 3x2 grid, so its height tracks its width */
+  .ig-embed iframe { display: block; width: 100%; height: 420px; height: calc(136px + 53cqw); border: 0; }
+  .ig-posts { display: grid; gap: 16px; }
+  .ig-posts .instagram-media { margin: 0 !important; min-width: 0 !important; width: 100% !important; border-radius: 14px !important; }
+  @media (max-width: 820px) {
+    .school-section .wrap { grid-template-columns: 1fr; gap: 28px; }
+    .school-info { position: static; }
+    section.school-section { padding: 56px 0; }
+  }
+
   @media (max-width: 520px) {
     .btn.ghost { margin: 10px 0 0; }
     .nav a.link { margin-left: 14px; }
@@ -139,6 +158,9 @@
       <div class="grid" id="grid"></div>
     </div>
   </section>
+
+  <!-- One section per chapter is built from the list in the script below -->
+  <div id="schools"></div>
 
 
   <section id="apply" class="apply">
@@ -204,28 +226,65 @@
     //   school: "Example University",
     //   location: "City, ST",
     //   instagram: "https://instagram.com/example",
-    //   website: ""
+    //   website: "",
+    //   posts: []   // optional: specific post links to show instead of the profile feed
     // },
   ];
 
   const grid = document.getElementById("grid");
+  const schools = document.getElementById("schools");
+  const handleOf = url => ((url || "").match(/instagram\.com\/([A-Za-z0-9._]+)/) || [])[1] || "";
+  const slugOf = c => handleOf(c.instagram) || c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const ordered = () => [...chapters].sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
   function render(filter = "") {
     const f = filter.trim().toLowerCase();
-    const list = chapters
-      .filter(c => !f || [c.name, c.school, c.location].join(" ").toLowerCase().includes(f))
-      .sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
+    const list = ordered()
+      .filter(c => !f || [c.name, c.school, c.location].join(" ").toLowerCase().includes(f));
     if (!list.length) { grid.innerHTML = '<p class="empty">No chapters match that search yet.</p>'; return; }
     grid.innerHTML = list.map(c => `
-      <${c.instagram ? `a href="${esc(c.instagram)}" target="_blank" rel="noopener" aria-label="${esc(c.name)} on Instagram"` : "article"} class="card${c.colors ? " themed" : ""}"${c.colors ? ` style="--card-bg:${esc(c.colors.bg)};--card-fg:${esc(c.colors.fg)}"` : ""}>
+      <a href="#${esc(slugOf(c))}" class="card${c.colors ? " themed" : ""}"${c.colors ? ` style="--card-bg:${esc(c.colors.bg)};--card-fg:${esc(c.colors.fg)}"` : ""}>
         ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
         <h3>${esc(c.name)}</h3>
         <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
         <div class="links">
-          ${c.instagram ? `<span>Instagram →</span>` : ""}
+          <span>See their work ↓</span>
         </div>
-      </${c.instagram ? "a" : "article"}>`).join("");
+      </a>`).join("");
+  }
+
+  function renderSchools() {
+    let needsEmbedJs = false;
+    schools.innerHTML = ordered().map(c => {
+      const handle = handleOf(c.instagram);
+      const col = c.colors || { bg: "var(--surface)", fg: "var(--ink)" };
+      let media = "";
+      if (c.posts && c.posts.length) {
+        needsEmbedJs = true;
+        media = `<div class="ig-posts">${c.posts.map(u =>
+          `<blockquote class="instagram-media" data-instgrm-permalink="${esc(u)}" data-instgrm-version="14"><a href="${esc(u)}">View this post on Instagram</a></blockquote>`).join("")}</div>`;
+      } else if (handle) {
+        media = `<div class="ig-embed"><iframe src="https://www.instagram.com/${esc(handle)}/embed/" title="${esc(c.name)} on Instagram" loading="lazy" scrolling="no"></iframe></div>`;
+      }
+      return `
+      <section class="school-section" id="${esc(slugOf(c))}" style="--sec-bg:${esc(col.bg)};--sec-fg:${esc(col.fg)}">
+        <div class="wrap">
+          <div class="school-info">
+            ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
+            <h2>${esc(c.name)}</h2>
+            <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
+            ${c.instagram ? `<a class="btn" href="${esc(c.instagram)}" target="_blank" rel="noopener">Follow @${esc(handle)}</a>` : ""}
+          </div>
+          ${media}
+        </div>
+      </section>`;
+    }).join("");
+    if (needsEmbedJs) {
+      const s = document.createElement("script");
+      s.async = true; s.src = "https://www.instagram.com/embed.js";
+      document.body.appendChild(s);
+    }
   }
   const form = document.getElementById("apply-form");
   const status = document.getElementById("form-status");
@@ -248,6 +307,7 @@
   });
   document.getElementById("yr").textContent = new Date().getFullYear();
   render();
+  renderSchools();
 </script>
 </body>
 </html>
