@@ -71,30 +71,6 @@
   h2 { font-weight: 700; font-size: 34px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.01em; }
   .sub { color: var(--muted); margin: 0 0 28px; }
 
-  .search {
-    width: 100%; max-width: 420px; padding: 12px 16px; font: inherit;
-    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
-    margin-bottom: 24px;
-  }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px; display: flex; flex-direction: column; gap: 6px;
-  }
-  .card .tag { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
-  .card h3 { margin: 0; font-size: 18px; font-weight: 700; }
-  .card .school { color: var(--muted); font-size: 15px; margin: 0 0 10px; }
-  .card .links { margin-top: auto; display: flex; gap: 14px; flex-wrap: wrap; }
-  a.card { text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
-  a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .card.themed { background: var(--card-bg); color: var(--card-fg); border-color: var(--card-bg); }
-  .card.themed .tag, .card.themed .school { color: var(--card-fg); }
-  .card.themed .school { opacity: .85; }
-  .card.themed .links span { border-bottom-color: var(--card-fg); }
-  a.card.themed:hover { border-color: var(--card-fg); }
-  a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card .links span, .card .links a { font-weight: 700; font-size: 14px; text-decoration: none; border-bottom: 1.5px solid var(--accent); }
-  .empty { color: var(--muted); }
 
 
   .apply-form { display: grid; gap: 16px; max-width: 480px; }
@@ -152,15 +128,9 @@
     </div>
   </div>
 
-  <section id="chapters">
-    <div class="wrap">
-      <h2>Chapters</h2>
-      <div class="grid" id="grid"></div>
-    </div>
-  </section>
 
   <!-- One section per chapter is built from the list in the script below -->
-  <div id="schools"></div>
+  <div id="chapters"></div>
 
 
   <section id="apply" class="apply">
@@ -231,28 +201,11 @@
     // },
   ];
 
-  const grid = document.getElementById("grid");
-  const schools = document.getElementById("schools");
+  const schools = document.getElementById("chapters");
   const handleOf = url => ((url || "").match(/instagram\.com\/([A-Za-z0-9._]+)/) || [])[1] || "";
   const slugOf = c => handleOf(c.instagram) || c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const ordered = () => [...chapters].sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-  function render(filter = "") {
-    const f = filter.trim().toLowerCase();
-    const list = ordered()
-      .filter(c => !f || [c.name, c.school, c.location].join(" ").toLowerCase().includes(f));
-    if (!list.length) { grid.innerHTML = '<p class="empty">No chapters match that search yet.</p>'; return; }
-    grid.innerHTML = list.map(c => `
-      <a href="#${esc(slugOf(c))}" class="card${c.colors ? " themed" : ""}"${c.colors ? ` style="--card-bg:${esc(c.colors.bg)};--card-fg:${esc(c.colors.fg)}"` : ""}>
-        ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
-        <h3>${esc(c.name)}</h3>
-        <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
-        <div class="links">
-          <span>See their work ↓</span>
-        </div>
-      </a>`).join("");
-  }
 
   function renderSchools() {
     let needsEmbedJs = false;
@@ -306,7 +259,6 @@
     } finally { btn.disabled = false; }
   });
   document.getElementById("yr").textContent = new Date().getFullYear();
-  render();
   renderSchools();
 </script>
 </body>
