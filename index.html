@@ -39,12 +39,12 @@
     padding: 20px 0;
   }
   .logo { font-weight: 700; font-size: 20px; text-decoration: none; }
-  .logo span { color: var(--accent); }
+  .logo span { color: var(--ink); }
   .nav a.link { text-decoration: none; color: var(--muted); font-weight: 700; margin-left: 20px; }
   .nav a.link:hover { color: var(--ink); }
 
   .hero { padding: 72px 0 56px; }
-  .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
+  .eyebrow { color: var(--ink); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
   h1 {
     font-weight: 700;
     font-size: clamp(32px, 6vw, 64px); line-height: 1.02; margin: 12px 0 20px;
@@ -134,7 +134,7 @@
   <section id="nexus" class="nexus">
     <div class="wrap">
       <img class="nexus-mark" src="nexus-wordmark.png" alt="Nexus" width="318" height="60">
-      <p class="nexus-lede">Nexus is the app from Longhorn Artists Connect. Share your films, music, photography and design, and connect with the artists and professionals behind them.</p>
+      <p class="nexus-lede">The social hub for college creators. Share film, music, performance, design, and photography work with classmates and future collaborators.</p>
       <div class="nexus-links">
         <a class="btn" href="https://nexusbylac.com" target="_blank" rel="noopener">Visit nexusbylac.com</a>
         <a class="btn ghost" id="app-store-link" href="#" target="_blank" rel="noopener" hidden>Download on the App Store</a>
@@ -160,7 +160,7 @@
           <input type="text" name="school" autocomplete="organization" required>
         </label>
         <label>Your Phone Number
-          <input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="(512) 555-0123" pattern="[0-9\(\)\+\.\-\s]{7,20}" title="Enter a phone number, like (512) 555-0123" required>
+          <input type="tel" name="phone" autocomplete="tel" inputmode="tel" pattern="[0-9\(\)\+\.\-\s]{7,20}" title="Enter a valid phone number" required>
         </label>
         <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
         <button class="btn" type="submit">Apply now</button>
