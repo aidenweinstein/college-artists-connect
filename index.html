@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>College Artists Connect</title>
 <meta name="description" content="College Artists Connect is a national network of student-run talent agencies. Find your campus chapter.">
 <link rel="preload" href="PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
@@ -13,24 +14,13 @@
     font-weight: 700; font-style: normal; font-display: swap;
   }
   :root {
-    --bg: #faf7f2;
+    --bg: #ffffff;
     --surface: #ffffff;
-    --ink: #1b1a17;
+    --ink: #000000;
     --muted: #6b665d;
     --line: #e6e0d6;
     --accent: #d9481e;
     --accent-ink: #ffffff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141312;
-      --surface: #1e1c1a;
-      --ink: #f3efe8;
-      --muted: #a39d93;
-      --line: #2f2c28;
-      --accent: #f06a3f;
-      --accent-ink: #141312;
-    }
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -60,7 +50,7 @@
     font-size: clamp(32px, 6vw, 64px); line-height: 1.02; margin: 12px 0 20px;
     letter-spacing: -0.02em;
   }
-  .lede { font-size: 19px; color: var(--muted); max-width: 620px; margin: 0 0 32px; }
+  .lede { font-size: 19px; color: var(--ink); max-width: 620px; margin: 0 0 32px; }
   .btn {
     display: inline-block; background: var(--accent); color: var(--accent-ink);
     padding: 13px 22px; border-radius: 999px; font-weight: 700; text-decoration: none;
@@ -105,6 +95,14 @@
     section.school-section { padding: 56px 0; }
   }
 
+  /* Nexus */
+  section.nexus { background: #000; color: #fff; border-top: 0; padding: 80px 0; }
+  .nexus-mark { display: block; width: min(318px, 70vw); height: auto; margin: 0 0 20px; }
+  .nexus-lede { font-size: 19px; max-width: 620px; margin: 0 0 32px; }
+  .nexus .btn { background: #fff; color: #000; }
+  .nexus .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
+  .nexus .btn.ghost[hidden] { display: none; }
+
   @media (max-width: 520px) {
     .btn.ghost { margin: 10px 0 0; }
     .nav a.link { margin-left: 14px; }
@@ -117,6 +115,7 @@
       <a class="logo" href="/">College Artists <span>Connect</span></a>
       <nav>
         <a class="link" href="#chapters">Chapters</a>
+        <a class="link" href="#nexus">Nexus</a>
         <a class="link" href="#apply">Apply</a>
       </nav>
     </header>
@@ -131,6 +130,17 @@
 
   <!-- One section per chapter is built from the list in the script below -->
   <div id="chapters"></div>
+
+  <section id="nexus" class="nexus">
+    <div class="wrap">
+      <img class="nexus-mark" src="nexus-wordmark.png" alt="Nexus" width="318" height="60">
+      <p class="nexus-lede">Nexus is the app from Longhorn Artists Connect. Share your films, music, photography and design, and connect with the artists and professionals behind them.</p>
+      <div class="nexus-links">
+        <a class="btn" href="https://nexusbylac.com" target="_blank" rel="noopener">Visit nexusbylac.com</a>
+        <a class="btn ghost" id="app-store-link" href="#" target="_blank" rel="noopener" hidden>Download on the App Store</a>
+      </div>
+    </div>
+  </section>
 
 
   <section id="apply" class="apply">
@@ -148,6 +158,9 @@
         </label>
         <label>Your School
           <input type="text" name="school" autocomplete="organization" required>
+        </label>
+        <label>Your Phone Number
+          <input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="(512) 555-0123" pattern="[0-9\(\)\+\.\-\s]{7,20}" title="Enter a phone number, like (512) 555-0123" required>
         </label>
         <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
         <button class="btn" type="submit">Apply now</button>
@@ -260,6 +273,13 @@
   });
   document.getElementById("yr").textContent = new Date().getFullYear();
   renderSchools();
+
+  /* Paste the App Store link for Nexus here; the button stays hidden while this is empty. */
+  const NEXUS_APP_STORE = "";
+  if (NEXUS_APP_STORE) {
+    const a = document.getElementById("app-store-link");
+    a.href = NEXUS_APP_STORE; a.hidden = false;
+  }
 </script>
 </body>
 </html>
