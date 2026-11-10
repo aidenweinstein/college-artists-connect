@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>College Artists Connect</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-512.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <meta name="description" content="College Artists Connect is a national network of student-run talent agencies. Find your campus chapter.">
 <link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/site.css?v=10">
@@ -150,6 +154,21 @@
     } finally { btn.disabled = false; }
   });
   renderSchools();
+
+  // Keep each chapter name on one line: shrink its type just enough to fit the column.
+  function fitChapterNames() {
+    document.querySelectorAll(".school-section h2").forEach(h => {
+      h.style.fontSize = "";
+      const room = h.clientWidth, need = h.scrollWidth;
+      if (need > room) {
+        const size = parseFloat(getComputedStyle(h).fontSize);
+        h.style.fontSize = Math.floor(size * room / need) + "px";
+      }
+    });
+  }
+  fitChapterNames();
+  if (document.fonts) document.fonts.ready.then(fitChapterNames);
+  addEventListener("resize", fitChapterNames);
 
   /* Fill each chapter's row with real artists once they load. */
   chapters.filter(c => c.talent).forEach(async c => {
