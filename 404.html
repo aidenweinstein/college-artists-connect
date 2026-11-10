@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>College Artists Connect</title>
+<link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css">
+<script src="/site.js"></script>
+</head>
+<body>
+  <!-- GitHub Pages shows this page for any address that isn't a real file. Artist pages
+       (e.g. /ut-austin/fredwara/) are built here from the talent API, so new artists
+       get a page as soon as an admin adds them, without changing the site's files. -->
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="/">College Artists <span>Connect</span></a>
+      <nav><a class="link" id="nav-talent" href="/" hidden>All talent</a></nav>
+    </header>
+  </div>
+
+  <main id="app" class="artist-main">
+    <div class="wrap"><p class="empty-note">&nbsp;</p></div>
+  </main>
+
+  <div class="wrap">
+    <footer>
+      <span>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</span>
+      <a class="admin-link" id="admin-link" href="/admin/">Admin</a>
+    </footer>
+  </div>
+
+<script>
+  const [slug, handle, ...rest] = location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  const chapter = chapterBySlug(slug);
+  const app = document.getElementById("app");
+
+  function notFound() {
+    document.title = "Page not found · College Artists Connect";
+    app.innerHTML = `<div class="wrap" style="padding:72px 20px">
+      <h1 style="font-size:clamp(28px,4vw,44px);margin:0 0 12px">Page not found</h1>
+      <p class="sub">We couldn't find that page.</p>
+      <a class="btn" href="${chapter && chapter.talent ? `/${esc(chapter.slug)}/` : "/"}">${chapter && chapter.talent ? `See ${esc(chapter.name)} talent` : "Go to the homepage"}</a>
+    </div>`;
+  }
+
+  if (chapter && chapter.talent && handle && !rest.length) {
+    const talentUrl = `/${chapter.slug}/`;
+    const nav = document.getElementById("nav-talent");
+    nav.href = talentUrl; nav.hidden = false;
+    document.getElementById("admin-link").href = `/${chapter.slug}/admin/`;
+
+    fetchArtists(chapter.slug).then(({ artists }) => {
+      const a = artists.find(x => x.handle === handle.toLowerCase());
+      if (!a) return notFound();
+      if (location.pathname !== artistUrl(chapter.slug, a)) history.replaceState(null, "", artistUrl(chapter.slug, a));
+      document.title = `${a.name} · ${chapter.name}`;
+
+      const facts = [
+        ["Hometown", a.hometown],
+        ["Major", a.major],
+        ["Graduation year", a.gradYear],
+      ].filter(([, v]) => v);
+      const links = ARTIST_LINKS.filter(([k]) => a.links && a.links[k])
+        .map(([k, label]) => `<a class="btn link-btn" href="${esc(a.links[k])}" target="_blank" rel="noopener">${label}</a>`);
+      if (a.resume) links.push(`<a class="btn link-btn" href="${esc(fileUrl(a.resume.id))}" target="_blank" rel="noopener">Resume</a>`);
+
+      app.innerHTML = `<div class="wrap artist-layout" style="--sec-bg:${esc(chapter.colors.bg)};--sec-fg:${esc(chapter.colors.fg)}">
+        <figure class="artist-photo">
+          <div class="photo">${photoHtml(a, a.name)}</div>
+          ${a.photoCredit ? `<figcaption>Photo by ${esc(a.photoCredit)}</figcaption>` : ""}
+        </figure>
+        <div class="artist-info">
+          <a class="back" href="${talentUrl}">← ${esc(chapter.name)}</a>
+          <div class="tag">${esc(a.discipline)}</div>
+          <h1>${esc(a.name)}</h1>
+          ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+          ${links.length ? `<div class="artist-links">${links.join("")}</div>` : ""}
+          ${getAdminToken(chapter.slug) ? `<p><a class="talent-link" href="/${esc(chapter.slug)}/admin/?edit=${esc(a.id)}">Edit this artist</a></p>` : ""}
+        </div>
+      </div>`;
+    }).catch(err => {
+      console.warn(err);
+      app.innerHTML = '<div class="wrap" style="padding:72px 20px"><p class="empty-note">Couldn\'t load this artist right now. Please try again later.</p></div>';
+    });
+  } else {
+    notFound();
+  }
+</script>
+</body>
+</html>

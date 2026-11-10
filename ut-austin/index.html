@@ -17,7 +17,7 @@
       <a class="logo" href="/">College Artists <span>Connect</span></a>
       <nav>
         <a class="link" href="#featured">Featured</a>
-        <a class="link" href="#a-z">A–Z</a>
+        <a class="link" href="#all-artists">All Artists</a>
       </nav>
     </header>
   </div>
@@ -39,25 +39,25 @@
     </div>
   </section>
 
-  <section id="a-z">
+  <section id="all-artists">
     <div class="wrap">
-      <h2>A–Z</h2>
+      <h2>All Artists</h2>
       <p class="sub">Every artist represented by the chapter.</p>
       <div class="filters" id="filters" role="group" aria-label="Filter by discipline"></div>
-      <div id="az"></div>
+      <div class="featured-grid" id="all-grid"></div>
     </div>
   </section>
 
   <div class="wrap">
     <footer>
       <span>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</span>
-      <a class="admin-link" id="admin-link" href="admin/">Admin</a>
+      <a class="admin-link" href="admin/">Admin</a>
     </footer>
   </div>
 
 <script>
   const chapter = chapterBySlug(currentSlug());
-  let artists = [];
+  let data = { artists: [], featured: [] };
   let filter = "All";
 
   if (!chapter) {
@@ -72,50 +72,35 @@
     renderFilters();
     render();
     fetchArtists(chapter.slug)
-      .then(list => { artists = list; render(); })
+      .then(d => { data = d; render(); })
       .catch(err => {
         console.warn(err);
-        document.getElementById("az").innerHTML = '<p class="empty-note">Couldn\'t load artists right now. Please try again later.</p>';
+        document.getElementById("all-grid").innerHTML = '<p class="empty-note">Couldn\'t load artists right now. Please try again later.</p>';
       });
   }
 
-  /* An artist's card links to their page (if the admin added one). */
-  function wrap(a, cls, inner) {
-    return a && a.link
-      ? `<a class="${cls}" href="${esc(a.link)}" target="_blank" rel="noopener">${inner}</a>`
-      : `<div class="${cls}">${inner}</div>`;
+  function card(a) {
+    return `<a class="artist-card" href="${artistUrl(chapter.slug, a)}">
+      <div class="photo">${photoHtml(a, a.name)}</div>
+      <div class="name">${esc(a.name)}</div>
+      <div class="role">${esc(a.discipline)}</div>
+    </a>`;
+  }
+  function placeholders() {
+    return DISCIPLINES.map(d => `<div class="artist-card empty">
+      <div class="photo">${SILHOUETTE}</div>
+      <div class="name">Coming soon</div>
+      <div class="role">${d}</div></div>`).join("");
   }
 
   function render() {
-    const featured = artists.filter(a => a.featured);
-    const grid = document.getElementById("featured-grid");
-    grid.innerHTML = featured.length
-      ? featured.map(a => wrap(a, "artist-card",
-          `<div class="photo">${photoHtml(a, a.name)}</div>
-           <div class="name">${esc(a.name)}</div>
-           <div class="role">${esc(a.discipline)}</div>`)).join("")
-      : DISCIPLINES.map(d => `<div class="artist-card empty">
-           <div class="photo">${SILHOUETTE}</div>
-           <div class="name">Coming soon</div>
-           <div class="role">${d}</div></div>`).join("");
+    document.getElementById("featured-grid").innerHTML =
+      data.featured.length ? data.featured.map(card).join("") : placeholders();
 
-    const list = artists.filter(a => filter === "All" || a.discipline === filter);
-    const az = document.getElementById("az");
-    if (!list.length) {
-      az.innerHTML = `<p class="empty-note">${artists.length ? "No artists in this category yet." : "No artists yet. Check back soon."}</p>`;
-      return;
-    }
-    const groups = {};
-    for (const a of list) {
-      const letter = /[A-Za-z]/.test(a.name[0]) ? a.name[0].toUpperCase() : "#";
-      (groups[letter] ||= []).push(a);
-    }
-    az.innerHTML = Object.keys(groups).sort().map(letter => `
-      <h3 class="az-letter">${letter}</h3>
-      <div class="az-list">${groups[letter].map(a => wrap(a, "az-row",
-        `<div class="thumb">${photoHtml(a, "")}</div>
-         <div><div class="name">${esc(a.name)}</div><div class="role">${esc(a.discipline)}</div></div>`)).join("")}
-      </div>`).join("");
+    const list = data.artists.filter(a => filter === "All" || a.discipline === filter);
+    document.getElementById("all-grid").innerHTML = list.length
+      ? list.map(card).join("")
+      : `<p class="empty-note">${data.artists.length ? "No artists in this category yet." : "No artists yet. Check back soon."}</p>`;
   }
 
   function renderFilters() {

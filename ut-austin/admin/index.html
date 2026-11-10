@@ -16,7 +16,7 @@
   <div class="wrap">
     <header class="nav">
       <a class="logo" href="/">College Artists <span>Connect</span></a>
-      <nav><a class="link" id="talent-link" href="../">Talent page</a></nav>
+      <nav><a class="link" href="../">Talent page</a></nav>
     </header>
   </div>
 
@@ -26,7 +26,7 @@
       <!-- Login -->
       <div id="login-view" hidden>
         <div class="panel login-panel">
-          <h1 style="font-size:28px;margin:0 0 6px" id="login-title">Admin</h1>
+          <h1 class="admin-h1" id="login-title">Admin</h1>
           <p class="sub" style="margin-bottom:20px">Enter your chapter's admin password.</p>
           <form class="admin-form" id="login-form">
             <label>Password
@@ -38,19 +38,40 @@
         </div>
       </div>
 
-      <!-- Signed in -->
-      <div id="admin-view" hidden>
+      <!-- Artist lists -->
+      <div id="list-view" hidden>
         <div class="admin-head">
-          <div>
-            <h1 id="admin-title">Admin</h1>
-            <p class="sub" style="margin:0">Add artists to the A–Z list, then feature the ones you want to spotlight.</p>
+          <h1 class="admin-h1" id="admin-title">Admin</h1>
+          <div class="head-actions">
+            <button class="btn small" type="button" id="add-artist">Add artist</button>
+            <button class="btn plain small" type="button" id="logout">Log out</button>
           </div>
-          <button class="btn plain small" type="button" id="logout">Log out</button>
+        </div>
+        <p class="notice" id="list-notice" role="status" aria-live="polite"></p>
+
+        <div class="panel">
+          <h2 class="panel-h2">Front page</h2>
+          <p class="sub" style="margin-bottom:16px">One artist per discipline for the homepage.</p>
+          <div class="front-slots" id="front-slots"></div>
         </div>
 
         <div class="panel">
-          <h2 style="font-size:22px;margin:0 0 18px">Add an artist</h2>
-          <form class="admin-form" id="add-form">
+          <h2 class="panel-h2">Featured <span class="count" id="featured-count"></span></h2>
+          <div class="admin-list" id="featured-list"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-h2">All Artists <span class="count" id="all-count"></span></h2>
+          <div class="admin-list" id="all-list"></div>
+        </div>
+      </div>
+
+      <!-- Add / edit an artist -->
+      <div id="editor-view" hidden>
+        <button class="btn plain small" type="button" id="editor-back" style="margin-bottom:20px">← Back to artists</button>
+        <div class="panel">
+          <h1 class="admin-h1" id="editor-title" style="margin-bottom:22px">Add artist</h1>
+          <form class="admin-form" id="editor-form" novalidate>
             <div class="row2">
               <label>Name
                 <input type="text" name="name" maxlength="80" required>
@@ -63,25 +84,70 @@
                 </select>
               </label>
             </div>
-            <label>Link (optional)
-              <input type="text" name="link" placeholder="Instagram, website or reel" inputmode="url" autocapitalize="off" spellcheck="false">
-            </label>
-            <label>Photo
+
+            <fieldset class="field-group">
+              <legend>Photo</legend>
               <div class="photo-pick">
                 <div class="preview" id="preview"></div>
-                <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp,image/heic">
+                <div class="photo-actions">
+                  <label class="btn plain small file-btn">Choose photo
+                    <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
+                  </label>
+                  <button class="btn plain small" type="button" id="recrop" hidden>Adjust crop</button>
+                </div>
               </div>
-            </label>
-            <button class="btn" type="submit">Add to A–Z</button>
-            <p class="notice" id="add-notice" role="status" aria-live="polite"></p>
-          </form>
-        </div>
+              <div class="cropper" id="cropper" hidden>
+                <p class="sub" style="margin:0 0 10px">Drag to position the photo. Use the slider to zoom.</p>
+                <div class="crop-stage" id="crop-stage"><img id="crop-img" alt="" draggable="false"></div>
+                <label class="zoom">Zoom
+                  <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1">
+                </label>
+                <button class="btn small" type="button" id="crop-done">Use this crop</button>
+              </div>
+              <label>Photo credit
+                <input type="text" name="photoCredit" maxlength="80" placeholder="Photographer's name">
+              </label>
+            </fieldset>
 
-        <div class="panel">
-          <h2 style="font-size:22px;margin:0 0 6px">Artists <span id="count" style="color:var(--muted)"></span></h2>
-          <p class="sub" style="margin-bottom:12px">Featured artists appear at the top of the talent page and on the homepage.</p>
-          <div class="admin-list" id="list"></div>
-          <p class="notice" id="list-notice" role="status" aria-live="polite"></p>
+            <fieldset class="field-group">
+              <legend>About</legend>
+              <div class="row3">
+                <label>Hometown
+                  <input type="text" name="hometown" maxlength="80" placeholder="City, State">
+                </label>
+                <label>Major
+                  <input type="text" name="major" maxlength="80">
+                </label>
+                <label>Graduation year
+                  <input type="text" name="gradYear" inputmode="numeric" maxlength="4" placeholder="YYYY">
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field-group">
+              <legend>Links</legend>
+              <div class="row2" id="link-fields"></div>
+            </fieldset>
+
+            <fieldset class="field-group">
+              <legend>Resume</legend>
+              <div class="resume-row">
+                <span id="resume-name" class="resume-name">No resume</span>
+                <label class="btn plain small file-btn">Upload PDF
+                  <input type="file" id="resume-input" accept="application/pdf">
+                </label>
+                <button class="btn danger small" type="button" id="resume-remove" hidden>Remove</button>
+              </div>
+            </fieldset>
+
+            <label class="check" id="featured-check"><input type="checkbox" name="featured"> Feature this artist</label>
+
+            <div class="form-actions">
+              <button class="btn" type="submit" id="save">Save artist</button>
+              <a class="talent-link" id="view-page" href="#" target="_blank" rel="noopener" hidden>View artist page</a>
+            </div>
+            <p class="notice" id="editor-notice" role="status" aria-live="polite"></p>
+          </form>
         </div>
       </div>
 
@@ -96,33 +162,37 @@
 
 <script>
   const chapter = chapterBySlug(currentSlug());
-  if (!chapter) location.replace("/admin/");
-
-  const TOKEN_KEY = `cac-admin-${chapter && chapter.slug}`;
+  if (!chapter || !chapter.talent) location.replace("/admin/");
+  const slug = chapter ? chapter.slug : "";
   const $ = id => document.getElementById(id);
-  let artists = [];
-  let pendingPhoto = null;     // resized photo (data URL) waiting to be uploaded
-  let confirmingRemove = null; // id of the artist whose Remove button was clicked once
 
-  const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY); } catch { return null; } };
-  const setToken = t => { try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch {} };
+  let data = { artists: [], featured: [], frontPage: {} };   // featured: artist objects in order; frontPage: discipline -> artist
+  let confirmingRemove = null;
+  let editing = null;                         // artist being edited, or null when adding
 
+  /* ---------- Talking to the talent API ---------- */
   async function api(path, options = {}) {
-    const res = await fetch(`${TALENT_API}/schools/${chapter.slug}${path}`, {
-      ...options,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken() || ""}`, ...(options.headers || {}) },
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401 && path !== "/login") { setToken(null); show(); }
-    if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
-    return data;
+    let res;
+    try {
+      res = await fetch(`${TALENT_API}/schools/${slug}${path}`, {
+        ...options,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAdminToken(slug) || ""}` },
+      });
+    } catch { throw new Error("Couldn't reach the server. Check your connection and try again."); }
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401 && path !== "/login") { setAdminToken(slug, null); show("login"); }
+    if (!res.ok) throw new Error(body.error || "Something went wrong. Please try again.");
+    return body;
+  }
+  function note(id, text, isError = false) {
+    $(id).textContent = text;
+    $(id).classList.toggle("error", isError);
   }
 
-  function show() {
-    const signedIn = !!getToken();
-    $("login-view").hidden = signedIn;
-    $("admin-view").hidden = !signedIn;
-    if (signedIn) load(); else $("password").focus();
+  function show(view) {
+    for (const v of ["login", "list", "editor"]) $(`${v}-view`).hidden = v !== view;
+    if (view === "login") $("password").focus();
+    window.scrollTo(0, 0);
   }
 
   /* ---------- Login ---------- */
@@ -133,149 +203,430 @@
     note("login-notice", "Checking…");
     try {
       const { token } = await api("/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
-      setToken(token);
+      setAdminToken(slug, token);
       $("password").value = "";
       note("login-notice", "");
-      show();
+      start();
     } catch (err) {
-      note("login-notice", err.message === "Failed to fetch" ? "Couldn't reach the server. Please try again." : err.message, true);
+      note("login-notice", err.message, true);
     } finally { btn.disabled = false; }
   });
-  $("logout").addEventListener("click", () => { setToken(null); show(); });
+  $("logout").addEventListener("click", () => { setAdminToken(slug, null); show("login"); });
 
-  /* ---------- Add artist ---------- */
-  $("preview").innerHTML = SILHOUETTE;
-  $("photo").addEventListener("change", async e => {
-    const file = e.target.files[0];
-    pendingPhoto = null;
-    $("preview").innerHTML = SILHOUETTE;
-    if (!file) return;
-    try {
-      pendingPhoto = await resizePhoto(file);
-      $("preview").innerHTML = `<img src="${pendingPhoto}" alt="">`;
-      note("add-notice", "");
-    } catch {
-      e.target.value = "";
-      note("add-notice", "Couldn't read that photo. Try a JPEG or PNG.", true);
-    }
-  });
-
-  $("add-form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const form = e.target;
-    const btn = form.querySelector("button");
-    btn.disabled = true;
-    note("add-notice", "Adding…");
-    try {
-      const artist = await api("/artists", {
-        method: "POST",
-        body: JSON.stringify({
-          name: form.name.value,
-          discipline: form.discipline.value,
-          link: form.link.value,
-          photo: pendingPhoto,
-        }),
-      });
-      artists.push(artist);
-      form.reset();
-      pendingPhoto = null;
-      $("preview").innerHTML = SILHOUETTE;
-      note("add-notice", `Added ${artist.name}.`);
-      renderList();
-    } catch (err) {
-      note("add-notice", err.message, true);
-    } finally { btn.disabled = false; }
-  });
-
-  /* Shrink photos in the browser so uploads stay small (longest side 1000px). */
-  function resizePhoto(file) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const scale = Math.min(1, 1000 / Math.max(img.naturalWidth, img.naturalHeight));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.naturalWidth * scale);
-        canvas.height = Math.round(img.naturalHeight * scale);
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("bad image")); };
-      img.src = url;
-    });
-  }
-
-  /* ---------- List ---------- */
+  /* ---------- Lists ---------- */
   async function load() {
     note("list-notice", "Loading…");
     try {
-      artists = await fetchArtists(chapter.slug);
+      data = await fetchArtists(slug);
       note("list-notice", "");
-      renderList();
-    } catch (err) {
+      renderLists();
+    } catch {
       note("list-notice", "Couldn't load artists. Please refresh the page.", true);
     }
   }
 
-  function renderList() {
-    const sorted = [...artists].sort((a, b) => (b.featured - a.featured) || a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
-    $("count").textContent = artists.length ? `(${artists.length})` : "";
-    $("list").innerHTML = sorted.length ? sorted.map(a => `
-      <div class="admin-item" data-id="${esc(a.id)}">
-        <div class="thumb">${photoHtml(a, "")}</div>
-        <div class="who">
-          <div>${esc(a.name)}${a.featured ? '<span class="badge">Featured</span>' : ""}</div>
-          <div class="role">${esc(a.discipline)}${a.link ? ` · <a href="${esc(a.link)}" target="_blank" rel="noopener">link</a>` : ""}</div>
-        </div>
-        <div class="actions">
-          <button class="btn small ${a.featured ? "plain" : ""}" type="button" data-act="feature">${a.featured ? "Unfeature" : "Feature"}</button>
-          <button class="btn small danger" type="button" data-act="remove">${confirmingRemove === a.id ? "Confirm remove" : "Remove"}</button>
-        </div>
-      </div>`).join("")
-      : '<p class="empty-note">No artists yet. Add your first one above.</p>';
+  function row(a, i, list, kind) {
+    const featured = data.featured.some(f => f.id === a.id);
+    const actions = kind === "featured"
+      ? `<button class="btn plain small" type="button" data-act="unfeature">Unfeature</button>`
+      : `<button class="btn small ${featured ? "plain" : ""}" type="button" data-act="${featured ? "unfeature" : "feature"}">${featured ? "Unfeature" : "Feature"}</button>
+         <button class="btn plain small" type="button" data-act="edit">Edit</button>
+         <button class="btn small danger" type="button" data-act="remove">${confirmingRemove === a.id ? "Confirm remove" : "Remove"}</button>`;
+    return `<div class="admin-item" data-id="${esc(a.id)}" data-kind="${kind}">
+      <div class="move">
+        <button class="arrow" type="button" data-act="up" aria-label="Move ${esc(a.name)} up" ${i === 0 ? "disabled" : ""}>↑</button>
+        <button class="arrow" type="button" data-act="down" aria-label="Move ${esc(a.name)} down" ${i === list.length - 1 ? "disabled" : ""}>↓</button>
+      </div>
+      <div class="thumb">${photoHtml(a, "")}</div>
+      <div class="who">
+        <div><a href="${artistUrl(slug, a)}" target="_blank" rel="noopener" class="plain-link">${esc(a.name)}</a>${kind !== "front" && a.frontPage ? '<span class="badge">Front page</span>' : kind === "all" && featured ? '<span class="badge">Featured</span>' : ""}</div>
+        <div class="role">${esc(a.discipline)}</div>
+      </div>
+      <div class="actions">${actions}</div>
+    </div>`;
   }
 
-  $("list").addEventListener("click", async e => {
-    const btn = e.target.closest("button[data-act]");
-    if (!btn) return;
-    const id = btn.closest(".admin-item").dataset.id;
-    const artist = artists.find(a => a.id === id);
-    if (!artist) return;
+  function renderFrontPage() {
+    $("front-slots").innerHTML = DISCIPLINES.map(d => {
+      const pick = data.frontPage[d];
+      const options = data.artists.filter(a => a.discipline === d);
+      return `<div class="front-slot">
+        <div class="thumb">${photoHtml(pick, "")}</div>
+        <label>${d}
+          <select data-discipline="${d}" ${options.length ? "" : "disabled"}>
+            <option value="">${options.length ? "Not chosen" : `No ${d.toLowerCase()}s yet`}</option>
+            ${options.map(a => `<option value="${esc(a.id)}" ${pick && pick.id === a.id ? "selected" : ""}>${esc(a.name)}</option>`).join("")}
+          </select>
+        </label>
+      </div>`;
+    }).join("");
+  }
 
-    if (btn.dataset.act === "remove" && confirmingRemove !== id) {
-      confirmingRemove = id;   // first click asks for confirmation
-      renderList();
-      return;
-    }
-    btn.disabled = true;
+  $("front-slots").addEventListener("change", async e => {
+    const sel = e.target.closest("select[data-discipline]");
+    if (!sel) return;
+    const d = sel.dataset.discipline;
+    const current = data.frontPage[d];
+    sel.disabled = true;
     try {
-      if (btn.dataset.act === "feature") {
-        Object.assign(artist, await api(`/artists/${id}`, { method: "PATCH", body: JSON.stringify({ featured: !artist.featured }) }));
-        note("list-notice", artist.featured ? `${artist.name} is now featured.` : `${artist.name} is no longer featured.`);
-      } else {
-        await api(`/artists/${id}`, { method: "DELETE" });
-        artists = artists.filter(a => a.id !== id);
-        confirmingRemove = null;
-        note("list-notice", `Removed ${artist.name}.`);
+      if (sel.value) {
+        await api(`/artists/${sel.value}`, { method: "PATCH", body: JSON.stringify({ frontPage: true }) });
+      } else if (current) {
+        await api(`/artists/${current.id}`, { method: "PATCH", body: JSON.stringify({ frontPage: false }) });
       }
-      renderList();
+      await load();
+      const pick = data.frontPage[d];
+      note("list-notice", pick ? `${pick.name} is now the front-page ${d.toLowerCase()}.` : `No front-page ${d.toLowerCase()} chosen.`);
     } catch (err) {
       note("list-notice", err.message, true);
-      btn.disabled = false;
+      renderLists();
     }
   });
 
-  function note(id, text, isError = false) {
-    $(id).textContent = text;
-    $(id).classList.toggle("error", isError);
+  function renderLists() {
+    renderFrontPage();
+    $("featured-count").textContent = data.featured.length ? `(${data.featured.length})` : "";
+    $("all-count").textContent = data.artists.length ? `(${data.artists.length})` : "";
+    $("featured-list").innerHTML = data.featured.length
+      ? data.featured.map((a, i, l) => row(a, i, l, "featured")).join("")
+      : '<p class="empty-note">No featured artists yet. Use Feature in the list below.</p>';
+    $("all-list").innerHTML = data.artists.length
+      ? data.artists.map((a, i, l) => row(a, i, l, "all")).join("")
+      : '<p class="empty-note">No artists yet. Use Add artist to add your first one.</p>';
   }
 
+  async function saveOrder(previous) {
+    try {
+      const res = await api("/order", { method: "PUT", body: JSON.stringify({
+        all: data.artists.map(a => a.id), featured: data.featured.map(a => a.id) }) });
+      const byId = Object.fromEntries(res.artists.map(a => [a.id, a]));
+      const frontPage = {};
+      for (const [d, fid] of Object.entries(res.frontPage || {})) if (byId[fid]) frontPage[d] = byId[fid];
+      data = { artists: res.artists, featured: res.featured.map(id => byId[id]).filter(Boolean), frontPage };
+      note("list-notice", "Order saved.");
+    } catch (err) {
+      data = previous;
+      note("list-notice", err.message, true);
+    }
+    renderLists();
+  }
+
+  for (const listId of ["featured-list", "all-list"]) {
+    $(listId).addEventListener("click", async e => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const item = btn.closest(".admin-item");
+      const id = item.dataset.id;
+      const kind = item.dataset.kind;
+      const artist = data.artists.find(a => a.id === id);
+      if (!artist) return;
+      const act = btn.dataset.act;
+
+      if (act === "up" || act === "down") {
+        const previous = { artists: [...data.artists], featured: [...data.featured], frontPage: { ...data.frontPage } };
+        const list = kind === "featured" ? data.featured : data.artists;
+        const i = list.findIndex(a => a.id === id), j = act === "up" ? i - 1 : i + 1;
+        if (j < 0 || j >= list.length) return;
+        [list[i], list[j]] = [list[j], list[i]];
+        renderLists();
+        const again = $(listId).querySelector(`.admin-item[data-id="${CSS.escape(id)}"] button[data-act="${act}"]:not([disabled])`);
+        if (again) again.focus();
+        return saveOrder(previous);
+      }
+      if (act === "edit") return openEditor(artist);
+      if (act === "remove" && confirmingRemove !== id) {
+        confirmingRemove = id;   // first click asks for confirmation
+        return renderLists();
+      }
+
+      btn.disabled = true;
+      try {
+        if (act === "feature" || act === "unfeature") {
+          await api(`/artists/${id}`, { method: "PATCH", body: JSON.stringify({ featured: act === "feature" }) });
+          await load();
+          note("list-notice", act === "feature" ? `${artist.name} is now featured.` : `${artist.name} is no longer featured.`);
+        } else if (act === "remove") {
+          await api(`/artists/${id}`, { method: "DELETE" });
+          confirmingRemove = null;
+          await load();
+          note("list-notice", `Removed ${artist.name}.`);
+        }
+        renderLists();
+      } catch (err) {
+        note("list-notice", err.message, true);
+        btn.disabled = false;
+      }
+    });
+  }
+  $("add-artist").addEventListener("click", () => openEditor(null));
+
+  /* ---------- Editor ---------- */
+  $("link-fields").innerHTML = ARTIST_LINKS.map(([k, label]) =>
+    `<label>${label}<input type="text" name="link-${k}" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="${k === "nexus" ? "nexusbylac.com/…" : "Paste a link"}"></label>`).join("");
+
+  let photo = null;    // { image, original?, crop } waiting to be saved
+  let resume;          // undefined = unchanged, null = remove, { name, data } = upload
+
+  function openEditor(artist) {
+    editing = artist;
+    photo = null; resume = undefined;
+    const f = $("editor-form");
+    f.reset();
+    $("editor-title").textContent = artist ? `Edit ${artist.name}` : "Add artist";
+    $("save").textContent = artist ? "Save changes" : "Add artist";
+    $("featured-check").hidden = !!artist;
+    note("editor-notice", "");
+    closeCropper();
+    if (artist) {
+      f.name.value = artist.name;
+      f.discipline.value = artist.discipline;
+      f.photoCredit.value = artist.photoCredit || "";
+      f.hometown.value = artist.hometown || "";
+      f.major.value = artist.major || "";
+      f.gradYear.value = artist.gradYear || "";
+      for (const [k] of ARTIST_LINKS) f[`link-${k}`].value = (artist.links && artist.links[k]) || "";
+    }
+    $("preview").innerHTML = photoHtml(artist, "");
+    $("recrop").hidden = !(artist && (artist.photoOriginal || artist.photo));
+    $("view-page").hidden = !artist;
+    if (artist) $("view-page").href = artistUrl(slug, artist);
+    showResume(artist && artist.resume ? artist.resume.name : "");
+    show("editor");
+    const u = new URL(location.href);
+    artist ? u.searchParams.set("edit", artist.id) : u.searchParams.delete("edit");
+    history.replaceState(null, "", u);
+  }
+  function closeEditor() {
+    const u = new URL(location.href);
+    u.searchParams.delete("edit");
+    history.replaceState(null, "", u);
+    show("list");
+    renderLists();
+  }
+  $("editor-back").addEventListener("click", closeEditor);
+
+  function showResume(name) {
+    $("resume-name").textContent = name || "No resume";
+    $("resume-remove").hidden = !name;
+  }
+  $("resume-input").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.type !== "application/pdf") return note("editor-notice", "The resume needs to be a PDF.", true);
+    if (file.size > 5 * 1024 * 1024) return note("editor-notice", "That PDF is over 5 MB. Try exporting a smaller one.", true);
+    resume = { name: file.name, data: await readAsDataUrl(file) };
+    showResume(`${file.name} (not saved yet)`);
+    note("editor-notice", "");
+  });
+  $("resume-remove").addEventListener("click", () => { resume = null; showResume(""); });
+
+  $("editor-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target;
+    if (!f.name.value.trim()) return note("editor-notice", "Enter the artist's name.", true);
+    if (f.gradYear.value && !/^\d{4}$/.test(f.gradYear.value.trim())) return note("editor-notice", "Enter a four-digit graduation year.", true);
+    if (!$("cropper").hidden) return note("editor-notice", "Finish cropping the photo first (Use this crop).", true);
+
+    const body = {
+      name: f.name.value,
+      discipline: f.discipline.value,
+      photoCredit: f.photoCredit.value,
+      hometown: f.hometown.value,
+      major: f.major.value,
+      gradYear: f.gradYear.value,
+      links: Object.fromEntries(ARTIST_LINKS.map(([k]) => [k, f[`link-${k}`].value])),
+    };
+    if (photo) body.photo = photo;
+    if (resume !== undefined) body.resume = resume;
+    if (!editing) body.featured = f.featured.checked;
+
+    $("save").disabled = true;
+    note("editor-notice", "Saving…");
+    try {
+      const saved = editing
+        ? await api(`/artists/${editing.id}`, { method: "PATCH", body: JSON.stringify(body) })
+        : await api("/artists", { method: "POST", body: JSON.stringify(body) });
+      await load();
+      closeEditor();
+      note("list-notice", editing ? `Saved ${saved.name}.` : `Added ${saved.name}.`);
+    } catch (err) {
+      note("editor-notice", err.message, true);
+    } finally { $("save").disabled = false; }
+  });
+
+  /* ---------- Square crop tool ---------- */
+  const stage = $("crop-stage"), cropImg = $("crop-img"), zoomInput = $("crop-zoom");
+  const crop = { img: null, original: null, isNew: false, w: 0, h: 0, x: 0, y: 0, zoom: 1, S: 0 };
+
+  $("photo-input").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    note("editor-notice", "Loading photo…");
+    try {
+      const original = await resizeToDataUrl(file, 1600);
+      await openCropper(original, true, null);
+      note("editor-notice", "");
+    } catch {
+      note("editor-notice", "Couldn't read that photo. Try a JPEG or PNG.", true);
+    }
+  });
+
+  $("recrop").addEventListener("click", async () => {
+    const a = editing;
+    if (!a) return;
+    note("editor-notice", "Loading photo…");
+    try {
+      const src = photo && photo.original ? photo.original : photoUrl(a.photoOriginal || a.photo);
+      await openCropper(src, !!(photo && photo.original), photo ? photo.crop : a.crop);
+      note("editor-notice", "");
+    } catch {
+      note("editor-notice", "Couldn't load the current photo. Try choosing it again.", true);
+    }
+  });
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      if (!src.startsWith("data:")) img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function openCropper(src, isNew, savedCrop) {
+    const img = await loadImage(src);
+    Object.assign(crop, { img, original: isNew ? src : null, isNew, w: img.naturalWidth, h: img.naturalHeight });
+    $("cropper").hidden = false;
+    cropImg.src = img.src;
+    crop.S = stage.clientWidth;
+    const m = Math.min(crop.w, crop.h);
+    if (savedCrop) {
+      crop.zoom = Math.min(4, Math.max(1, 1 / savedCrop.size));
+      const scale = scaleNow();
+      crop.x = -savedCrop.x * crop.w * scale;
+      crop.y = -savedCrop.y * crop.h * scale;
+    } else {
+      crop.zoom = 1;
+      const scale = scaleNow();
+      crop.x = (crop.S - crop.w * scale) / 2;
+      crop.y = (crop.S - crop.h * scale) / 2;
+    }
+    zoomInput.value = crop.zoom;
+    clampAndDraw();
+    $("cropper").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  function closeCropper() { $("cropper").hidden = true; }
+
+  const scaleNow = () => (crop.S / Math.min(crop.w, crop.h)) * crop.zoom;
+  function clampAndDraw() {
+    const scale = scaleNow();
+    crop.x = Math.min(0, Math.max(crop.S - crop.w * scale, crop.x));
+    crop.y = Math.min(0, Math.max(crop.S - crop.h * scale, crop.y));
+    cropImg.style.width = `${crop.w * scale}px`;
+    cropImg.style.height = `${crop.h * scale}px`;
+    cropImg.style.transform = `translate(${crop.x}px, ${crop.y}px)`;
+  }
+
+  zoomInput.addEventListener("input", () => {
+    const before = scaleNow();
+    const cx = (crop.S / 2 - crop.x) / before, cy = (crop.S / 2 - crop.y) / before;   // keep the center in place
+    crop.zoom = +zoomInput.value;
+    const after = scaleNow();
+    crop.x = crop.S / 2 - cx * after;
+    crop.y = crop.S / 2 - cy * after;
+    clampAndDraw();
+  });
+
+  let drag = null;
+  stage.addEventListener("pointerdown", e => {
+    drag = { px: e.clientX, py: e.clientY, x: crop.x, y: crop.y };
+    stage.setPointerCapture(e.pointerId);
+    stage.classList.add("dragging");
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drag) return;
+    crop.x = drag.x + (e.clientX - drag.px);
+    crop.y = drag.y + (e.clientY - drag.py);
+    clampAndDraw();
+  });
+  const endDrag = () => { drag = null; stage.classList.remove("dragging"); };
+  stage.addEventListener("pointerup", endDrag);
+  stage.addEventListener("pointercancel", endDrag);
+  stage.addEventListener("wheel", e => {
+    e.preventDefault();
+    zoomInput.value = Math.min(4, Math.max(1, crop.zoom * (e.deltaY < 0 ? 1.06 : 1 / 1.06)));
+    zoomInput.dispatchEvent(new Event("input"));
+  }, { passive: false });
+  window.addEventListener("resize", () => {
+    if ($("cropper").hidden || !crop.S) return;
+    const ratio = stage.clientWidth / crop.S;
+    crop.S = stage.clientWidth; crop.x *= ratio; crop.y *= ratio;
+    clampAndDraw();
+  });
+
+  $("crop-done").addEventListener("click", () => {
+    const scale = scaleNow();
+    const sx = -crop.x / scale, sy = -crop.y / scale, size = crop.S / scale;
+    const out = Math.round(Math.min(1000, size));
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = out;
+    canvas.getContext("2d").drawImage(crop.img, sx, sy, size, size, 0, 0, out, out);
+    let image;
+    try { image = canvas.toDataURL("image/jpeg", 0.88); }
+    catch { return note("editor-notice", "Couldn't crop this photo. Try choosing it again.", true); }
+    photo = {
+      image,
+      crop: { x: sx / crop.w, y: sy / crop.h, size: size / Math.min(crop.w, crop.h) },
+      ...(crop.isNew ? { original: crop.original } : {}),
+    };
+    $("preview").innerHTML = `<img src="${image}" alt="">`;
+    $("recrop").hidden = false;
+    closeCropper();
+    note("editor-notice", "Photo ready. It's saved when you save the artist.");
+  });
+
+  /* Shrink a photo in the browser before upload, keeping uploads under the server's size limit. */
+  async function resizeToDataUrl(file, maxSide) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await loadImage(url);
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      for (const q of [0.88, 0.8, 0.7, 0.6]) {
+        const d = canvas.toDataURL("image/jpeg", q);
+        if (d.length < 2.5e6) return d;   // about 1.9 MB once decoded
+      }
+      return canvas.toDataURL("image/jpeg", 0.5);
+    } finally { URL.revokeObjectURL(url); }
+  }
+  function readAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- Start ---------- */
+  async function start() {
+    show("list");
+    await load();
+    const editId = new URL(location.href).searchParams.get("edit");
+    const a = editId && data.artists.find(x => x.id === editId);
+    if (a) openEditor(a);
+  }
   if (chapter) {
     document.title = `${chapter.name} Admin · College Artists Connect`;
     $("login-title").textContent = `${chapter.name} admin`;
     $("admin-title").textContent = `${chapter.name} admin`;
-    show();
+    getAdminToken(slug) ? start() : show("login");
   }
 </script>
 </body>

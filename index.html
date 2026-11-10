@@ -83,13 +83,13 @@
   const anchorOf = c => handleOf(c.instagram) || c.slug;
 
   /* Actor / musician / filmmaker row. Shows silhouettes until the chapter adds artists. */
-  function talentRowHtml(c, artists) {
-    return `<div class="talent-row" id="row-${esc(c.slug)}">${picksByDiscipline(artists).map(({ discipline, artist }) => {
+  function talentRowHtml(c, data) {
+    return `<div class="talent-row" id="row-${esc(c.slug)}">${picksByDiscipline(data).map(({ discipline, artist }) => {
       const inner = `<div class="photo">${photoHtml(artist, artist ? artist.name : "")}</div>
         <div class="name">${artist ? esc(artist.name) : "Coming soon"}</div>
         <div class="role">${discipline}</div>`;
       return c.talent
-        ? `<a class="talent-pick${artist ? "" : " empty"}" href="/${esc(c.slug)}/">${inner}</a>`
+        ? `<a class="talent-pick${artist ? "" : " empty"}" href="${artist ? artistUrl(c.slug, artist) : `/${esc(c.slug)}/`}">${inner}</a>`
         : `<figure class="talent-pick empty">${inner}</figure>`;
     }).join("")}</div>`;
   }
@@ -114,7 +114,7 @@
             ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
             <h2>${esc(c.name)}</h2>
             <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
-            ${talentRowHtml(c, [])}
+            ${talentRowHtml(c, { artists: [], featured: [], frontPage: {} })}
             ${c.talent ? `<a class="talent-link" href="/${esc(c.slug)}/">See all talent →</a>` : ""}
           </div>
           ${media}
@@ -151,8 +151,8 @@
   /* Fill each chapter's row with real artists once they load. */
   chapters.filter(c => c.talent).forEach(async c => {
     try {
-      const artists = await fetchArtists(c.slug);
-      document.getElementById(`row-${c.slug}`).outerHTML = talentRowHtml(c, artists);
+      const data = await fetchArtists(c.slug);
+      document.getElementById(`row-${c.slug}`).outerHTML = talentRowHtml(c, data);
     } catch (err) { console.warn(err); }
   });
 

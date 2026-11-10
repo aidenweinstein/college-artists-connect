@@ -59,24 +59,46 @@ const chapterBySlug = slug => chapters.find(c => c.slug === slug);
 const currentSlug = () => location.pathname.split("/").filter(Boolean)[0] || "";
 
 const photoUrl = id => `${TALENT_API}/photos/${encodeURIComponent(id)}`;
+const fileUrl = id => `${TALENT_API}/files/${encodeURIComponent(id)}`;
 const SILHOUETTE = `<div class="silhouette" aria-hidden="true"><svg viewBox="0 0 100 100"><circle cx="50" cy="36" r="20" fill="currentColor"/><path d="M12 100c0-24 17-38 38-38s38 14 38 38z" fill="currentColor"/></svg></div>`;
 const photoHtml = (a, alt = "") => a && a.photo
   ? `<img src="${esc(photoUrl(a.photo))}" alt="${esc(alt)}" loading="lazy">`
   : SILHOUETTE;
 
+/* An artist's own page, e.g. /ut-austin/fredwara/ */
+const artistUrl = (slug, a) => `/${encodeURIComponent(slug)}/${encodeURIComponent(a.handle)}/`;
+
+/* Profile links, in the order they appear on artist pages and in admin. */
+const ARTIST_LINKS = [
+  ["nexus", "Nexus"], ["instagram", "Instagram"], ["youtube", "YouTube"], ["spotify", "Spotify"],
+  ["appleMusic", "Apple Music"], ["imdb", "IMDb"], ["linkedin", "LinkedIn"],
+];
+
+/* Returns { artists: [...in All Artists order], featured: [...artists in Featured order],
+   frontPage: { Actor: artist, Musician: artist, Filmmaker: artist } (homepage picks) }. */
 async function fetchArtists(slug) {
   const res = await fetch(`${TALENT_API}/schools/${encodeURIComponent(slug)}/artists`);
   if (!res.ok) throw new Error(`Couldn't load artists (${res.status})`);
-  return res.json();
+  const data = await res.json();
+  const byId = Object.fromEntries(data.artists.map(a => [a.id, a]));
+  const frontPage = {};
+  for (const [d, id] of Object.entries(data.frontPage || {})) if (byId[id]) frontPage[d] = byId[id];
+  return { artists: data.artists, featured: data.featured.map(id => byId[id]).filter(Boolean), frontPage };
 }
 
-/* One actor, one musician and one filmmaker for the homepage: featured artists first. */
-function picksByDiscipline(artists) {
-  return DISCIPLINES.map(d => {
-    const of = artists.filter(a => a.discipline === d);
-    return { discipline: d, artist: of.find(a => a.featured) || of[0] || null };
-  });
+/* One actor, one musician and one filmmaker for the homepage: the admins' front-page picks.
+   If a discipline has no pick yet, the first featured artist (then the first artist) fills in. */
+function picksByDiscipline({ artists, featured, frontPage = {} }) {
+  return DISCIPLINES.map(d => ({
+    discipline: d,
+    artist: frontPage[d] || featured.find(a => a.discipline === d) || artists.find(a => a.discipline === d) || null,
+  }));
 }
+
+/* Admin login token for a chapter (kept only for this browser tab). */
+const adminTokenKey = slug => `cac-admin-${slug}`;
+const getAdminToken = slug => { try { return sessionStorage.getItem(adminTokenKey(slug)); } catch { return null; } };
+const setAdminToken = (slug, t) => { try { t ? sessionStorage.setItem(adminTokenKey(slug), t) : sessionStorage.removeItem(adminTokenKey(slug)); } catch {} };
 
 function fillFooterYear() {
   const yr = document.getElementById("yr");
