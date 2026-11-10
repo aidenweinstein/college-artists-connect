@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>Admin · College Artists Connect</title>
+<link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css">
+<script src="/site.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="/">College Artists <span>Connect</span></a>
+    </header>
+  </div>
+
+  <main class="admin-main">
+    <div class="wrap">
+      <h1 style="font-size:clamp(28px,4vw,40px);margin:0 0 6px">Chapter admin</h1>
+      <p class="sub">Choose your chapter to log in.</p>
+      <div class="school-list" id="school-list"></div>
+    </div>
+  </main>
+
+  <div class="wrap">
+    <footer>
+      <span>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</span>
+    </footer>
+  </div>
+
+<script>
+  const withTalent = orderedChapters().filter(c => c.talent);
+  document.getElementById("school-list").innerHTML = withTalent.length
+    ? withTalent.map(c => `
+        <a href="/${esc(c.slug)}/admin/" style="--sec-bg:${esc(c.colors.bg)};--sec-fg:${esc(c.colors.fg)}">
+          <span>${esc(c.name)}</span><span aria-hidden="true">→</span>
+        </a>`).join("")
+    : '<p class="empty-note">No chapters have admin pages yet.</p>';
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+name = "cac-talent"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Where each chapter's artists and photos are stored.
+# Replace the id below with the one printed by:  npx wrangler kv namespace create TALENT
+[[kv_namespaces]]
+binding = "TALENT"
+id = "efa726e897e441f2ba150f88dd7c9275"

@@ -1,0 +1,4 @@
+# GitHub Pages settings. The talent API is deployed to Cloudflare, not served as part of the website.
+exclude:
+  - talent-api
+  - README.md

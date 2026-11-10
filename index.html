@@ -6,108 +6,8 @@
 <meta name="color-scheme" content="light">
 <title>College Artists Connect</title>
 <meta name="description" content="College Artists Connect is a national network of student-run talent agencies. Find your campus chapter.">
-<link rel="preload" href="PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<style>
-  @font-face {
-    font-family: "Pragmatica Extended";
-    src: url("PragmaticaExt-Bold.woff2") format("woff2");
-    font-weight: 700; font-style: normal; font-display: swap;
-  }
-  :root {
-    --bg: #ffffff;
-    --surface: #ffffff;
-    --ink: #000000;
-    --muted: #6b665d;
-    --line: #e6e0d6;
-    --accent: #d9481e;
-    --accent-ink: #ffffff;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 700 16px/1.6 "Pragmatica Extended", system-ui, -apple-system, sans-serif;
-    font-synthesis: none;
-  }
-  a { color: inherit; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-
-  header.nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 0;
-  }
-  .logo { font-weight: 700; font-size: 20px; text-decoration: none; }
-  .logo span { color: var(--ink); }
-  .nav a.link { text-decoration: none; color: var(--muted); font-weight: 700; margin-left: 20px; }
-  .nav a.link:hover { color: var(--ink); }
-
-  .hero { padding: 72px 0 56px; }
-  .eyebrow { color: var(--ink); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
-  h1 {
-    font-weight: 700;
-    font-size: clamp(32px, 6vw, 64px); line-height: 1.02; margin: 12px 0 20px;
-    letter-spacing: -0.02em;
-  }
-  .lede { font-size: 19px; color: var(--ink); max-width: 620px; margin: 0 0 32px; }
-  .btn {
-    display: inline-block; background: var(--accent); color: var(--accent-ink);
-    padding: 13px 22px; border-radius: 999px; font-weight: 700; text-decoration: none;
-  }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); margin-left: 8px; }
-
-  section { padding: 56px 0; border-top: 1px solid var(--line); }
-  h2 { font-weight: 700; font-size: 34px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.01em; }
-  .sub { color: var(--muted); margin: 0 0 28px; }
-
-
-
-  .apply-form { display: grid; gap: 16px; max-width: 480px; }
-  .apply-form label { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
-  .apply-form input {
-    width: 100%; padding: 12px 16px; font: inherit; font-weight: 700;
-    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
-  }
-  .apply-form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
-  .apply-form .btn { justify-self: start; border: 0; font: inherit; font-weight: 700; cursor: pointer; }
-  .apply-form .btn:disabled { opacity: .6; cursor: default; }
-  .form-status { margin: 0; color: var(--muted); font-size: 15px; min-height: 1.6em; }
-
-  footer { padding: 40px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
-
-  /* One section per chapter, in the school's colors, with its Instagram */
-  section.school-section { background: var(--sec-bg); color: var(--sec-fg); border-top: 0; padding: 72px 0; }
-  .school-section .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
-  .school-info { position: sticky; top: 32px; }
-  .school-section .tag { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
-  .school-section h2 { margin: 8px 0 10px; font-size: clamp(28px, 4vw, 40px); }
-  .school-section .school { margin: 0 0 28px; opacity: .85; }
-  .school-section .btn { background: var(--sec-fg); color: var(--sec-bg); }
-  .ig-embed { background: #fff; border-radius: 14px; overflow: hidden; container-type: inline-size; }
-  /* Instagram's profile embed is a header plus a 3x2 grid, so its height tracks its width */
-  .ig-embed iframe { display: block; width: 100%; height: 420px; height: calc(136px + 53cqw); border: 0; }
-  .ig-posts { display: grid; gap: 16px; }
-  .ig-posts .instagram-media { margin: 0 !important; min-width: 0 !important; width: 100% !important; border-radius: 14px !important; }
-  @media (max-width: 820px) {
-    .school-section .wrap { grid-template-columns: 1fr; gap: 28px; }
-    .school-info { position: static; }
-    section.school-section { padding: 56px 0; }
-  }
-
-  /* Nexus */
-  section.nexus { background: #000; color: #fff; border-top: 0; padding: 80px 0; }
-  .nexus-mark { display: block; width: min(318px, 70vw); height: auto; margin: 0 0 20px; }
-  .nexus-lede { font-size: 19px; max-width: 620px; margin: 0 0 32px; }
-  .nexus .btn { background: #fff; color: #000; }
-  .nexus .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
-  .nexus .btn.ghost[hidden] { display: none; }
-
-  @media (max-width: 520px) {
-    .btn.ghost { margin: 10px 0 0; }
-    .nav a.link { margin-left: 14px; }
-  }
-</style>
+<link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css">
 </head>
 <body>
   <div class="wrap">
@@ -133,7 +33,7 @@
 
   <section id="nexus" class="nexus">
     <div class="wrap">
-      <img class="nexus-mark" src="nexus-wordmark.png" alt="Nexus" width="318" height="60">
+      <img class="nexus-mark" src="/nexus-wordmark.png" alt="Nexus" width="318" height="60">
       <p class="nexus-lede">The social hub for college creators. Share film, music, performance, design, and photography work with classmates and future collaborators.</p>
       <div class="nexus-links">
         <a class="btn" href="https://nexusbylac.com" target="_blank" rel="noopener">Visit nexusbylac.com</a>
@@ -170,59 +70,33 @@
   </section>
 
   <div class="wrap">
-    <footer>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</footer>
+    <footer>
+      <span>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</span>
+      <a class="admin-link" href="/admin/">Admin</a>
+    </footer>
   </div>
 
+<script src="/site.js"></script>
 <script>
-  /* ============================================================
-     EDIT CHAPTERS HERE — copy a block to add a new chapter.
-     Leave a link as "" to hide that button.
-     ============================================================ */
-  const chapters = [
-    {
-      name: "Longhorn Artists Connect",
-      school: "University of Texas at Austin",
-      location: "Austin, TX",
-      founding: true,
-      instagram: "https://www.instagram.com/longhornartistsconnect/",
-      colors: { bg: "#BF5700", fg: "#FFFFFF" },   // Texas burnt orange + white
-      website: ""
-    },
-    {
-      name: "Cal Artists Connect",
-      school: "UC Berkeley",
-      location: "Berkeley, CA",
-      instagram: "https://www.instagram.com/calartistsconnect/",
-      colors: { bg: "#002676", fg: "#FDB515" },   // Berkeley blue + California gold
-      website: ""
-    },
-    {
-      name: "Trojan Artists Connect",
-      school: "University of Southern California",
-      location: "Los Angeles, CA",
-      instagram: "https://www.instagram.com/trojanartistsconnect/",
-      colors: { bg: "#990000", fg: "#FFCC00" },   // USC cardinal + gold
-      website: ""
-    },
-    // {
-    //   name: "Example Artists Connect",
-    //   school: "Example University",
-    //   location: "City, ST",
-    //   instagram: "https://instagram.com/example",
-    //   website: "",
-    //   posts: []   // optional: specific post links to show instead of the profile feed
-    // },
-  ];
-
   const schools = document.getElementById("chapters");
   const handleOf = url => ((url || "").match(/instagram\.com\/([A-Za-z0-9._]+)/) || [])[1] || "";
-  const slugOf = c => handleOf(c.instagram) || c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const ordered = () => [...chapters].sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const anchorOf = c => handleOf(c.instagram) || c.slug;
+
+  /* Actor / musician / filmmaker row. Shows silhouettes until the chapter adds artists. */
+  function talentRowHtml(c, artists) {
+    return `<div class="talent-row" id="row-${esc(c.slug)}">${picksByDiscipline(artists).map(({ discipline, artist }) => {
+      const inner = `<div class="photo">${photoHtml(artist, artist ? artist.name : "")}</div>
+        <div class="name">${artist ? esc(artist.name) : "Coming soon"}</div>
+        <div class="role">${discipline}</div>`;
+      return c.talent
+        ? `<a class="talent-pick${artist ? "" : " empty"}" href="/${esc(c.slug)}/">${inner}</a>`
+        : `<figure class="talent-pick empty">${inner}</figure>`;
+    }).join("")}</div>`;
+  }
 
   function renderSchools() {
     let needsEmbedJs = false;
-    schools.innerHTML = ordered().map(c => {
+    schools.innerHTML = orderedChapters().map(c => {
       const handle = handleOf(c.instagram);
       const col = c.colors || { bg: "var(--surface)", fg: "var(--ink)" };
       let media = "";
@@ -234,13 +108,14 @@
         media = `<div class="ig-embed"><iframe src="https://www.instagram.com/${esc(handle)}/embed/" title="${esc(c.name)} on Instagram" loading="lazy" scrolling="no"></iframe></div>`;
       }
       return `
-      <section class="school-section" id="${esc(slugOf(c))}" style="--sec-bg:${esc(col.bg)};--sec-fg:${esc(col.fg)}">
+      <section class="school-section" id="${esc(anchorOf(c))}" style="--sec-bg:${esc(col.bg)};--sec-fg:${esc(col.fg)}">
         <div class="wrap">
           <div class="school-info">
             ${c.founding ? '<div class="tag">Founding chapter</div>' : ""}
             <h2>${esc(c.name)}</h2>
             <p class="school">${esc(c.school)} · ${esc(c.location)}</p>
-            ${c.instagram ? `<a class="btn" href="${esc(c.instagram)}" target="_blank" rel="noopener">Follow @${esc(handle)}</a>` : ""}
+            ${talentRowHtml(c, [])}
+            ${c.talent ? `<a class="talent-link" href="/${esc(c.slug)}/">See all talent →</a>` : ""}
           </div>
           ${media}
         </div>
@@ -271,8 +146,15 @@
       status.textContent = "Something went wrong. Please try again.";
     } finally { btn.disabled = false; }
   });
-  document.getElementById("yr").textContent = new Date().getFullYear();
   renderSchools();
+
+  /* Fill each chapter's row with real artists once they load. */
+  chapters.filter(c => c.talent).forEach(async c => {
+    try {
+      const artists = await fetchArtists(c.slug);
+      document.getElementById(`row-${c.slug}`).outerHTML = talentRowHtml(c, artists);
+    } catch (err) { console.warn(err); }
+  });
 
   /* Paste the App Store link for Nexus here; the button stays hidden while this is empty. */
   const NEXUS_APP_STORE = "";
