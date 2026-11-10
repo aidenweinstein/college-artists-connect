@@ -7,8 +7,8 @@
 <meta name="robots" content="noindex">
 <title>Admin · College Artists Connect</title>
 <link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=5">
-<script src="/site.js?v=5"></script>
+<link rel="stylesheet" href="/site.css?v=8">
+<script src="/site.js?v=8"></script>
 </head>
 <body>
   <!-- Works for any chapter: it reads the chapter from its folder name (e.g. /ut-austin/admin/).
@@ -23,12 +23,15 @@
   <main class="admin-main">
     <div class="wrap">
 
-      <!-- Login -->
-      <div id="login-view" hidden>
+      <!-- Login. The form is only put on the page while logged out, so the browser's password
+           manager doesn't mistake saving an artist for another login. -->
+      <div id="login-view" hidden></div>
+      <template id="login-template">
         <div class="panel login-panel">
           <h1 class="admin-h1" id="login-title">Admin</h1>
           <p class="sub" style="margin-bottom:20px">Enter your chapter's admin password.</p>
           <form class="admin-form" id="login-form">
+            <input type="text" name="username" id="login-username" autocomplete="username" readonly hidden>
             <label>Password
               <input type="password" id="password" autocomplete="current-password" required>
             </label>
@@ -36,7 +39,7 @@
             <p class="notice" id="login-notice" role="status" aria-live="polite"></p>
           </form>
         </div>
-      </div>
+      </template>
 
       <!-- Artist lists -->
       <div id="list-view" hidden>
@@ -140,6 +143,7 @@
               </div>
             </fieldset>
 
+            <hr class="form-divider">
             <label class="check" id="featured-check"><input type="checkbox" name="featured"> Feature this artist</label>
 
             <div class="form-actions">
@@ -191,26 +195,34 @@
 
   function show(view) {
     for (const v of ["login", "list", "editor"]) $(`${v}-view`).hidden = v !== view;
-    if (view === "login") $("password").focus();
+    if (view === "login") renderLogin(); else $("login-view").innerHTML = "";
     window.scrollTo(0, 0);
   }
 
   /* ---------- Login ---------- */
-  $("login-form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const btn = e.target.querySelector("button");
-    btn.disabled = true;
-    note("login-notice", "Checking…");
-    try {
-      const { token } = await api("/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
-      setAdminToken(slug, token);
-      $("password").value = "";
-      note("login-notice", "");
-      start();
-    } catch (err) {
-      note("login-notice", err.message, true);
-    } finally { btn.disabled = false; }
-  });
+  function renderLogin() {
+    const view = $("login-view");
+    if (view.querySelector("#login-form")) return;
+    view.replaceChildren($("login-template").content.cloneNode(true));
+    $("login-title").textContent = `${chapter.name} admin`;
+    $("login-username").value = `${chapter.name} admin`;   // lets password managers label the saved password
+    $("login-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const btn = e.target.querySelector("button");
+      btn.disabled = true;
+      note("login-notice", "Checking…");
+      try {
+        const { token } = await api("/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
+        setAdminToken(slug, token);
+        // Reload so the browser treats this as a finished login (it may offer to save the password now, once).
+        location.replace(location.href);
+      } catch (err) {
+        note("login-notice", err.message, true);
+        btn.disabled = false;
+      }
+    });
+    $("password").focus();
+  }
   $("logout").addEventListener("click", () => { setAdminToken(slug, null); show("login"); });
 
   /* ---------- Lists ---------- */
@@ -362,7 +374,7 @@
 
   /* ---------- Editor ---------- */
   $("link-fields").innerHTML = ARTIST_LINKS.map(([k, label]) =>
-    `<label>${label}<input type="text" name="link-${k}" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="${k === "nexus" ? "nexusbylac.com/…" : "Paste a link"}"></label>`).join("");
+    `<label>${label}<input type="text" name="link-${k}" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="${k === "nexus" ? "nexusbylac.com/…" : k === "website" ? "yourname.com" : "Paste a link"}"></label>`).join("");
 
   let photo = null;    // { image, original?, crop } waiting to be saved
   let resume;          // undefined = unchanged, null = remove, { name, data } = upload
@@ -624,7 +636,6 @@
   }
   if (chapter) {
     document.title = `${chapter.name} Admin · College Artists Connect`;
-    $("login-title").textContent = `${chapter.name} admin`;
     $("admin-title").textContent = `${chapter.name} admin`;
     getAdminToken(slug) ? start() : show("login");
   }

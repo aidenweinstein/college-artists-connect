@@ -70,7 +70,7 @@ const artistUrl = (slug, a) => `/${encodeURIComponent(slug)}/${encodeURIComponen
 
 /* Profile links, in the order they appear on artist pages and in admin. */
 const ARTIST_LINKS = [
-  ["nexus", "Nexus"], ["instagram", "Instagram"], ["youtube", "YouTube"], ["spotify", "Spotify"],
+  ["website", "Website"], ["nexus", "Nexus"], ["instagram", "Instagram"], ["youtube", "YouTube"], ["spotify", "Spotify"],
   ["appleMusic", "Apple Music"], ["imdb", "IMDb"], ["linkedin", "LinkedIn"],
 ];
 

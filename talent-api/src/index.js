@@ -24,13 +24,13 @@
  *   PUT    /schools/:slug/order            { all: [ids], featured: [ids] }
  *
  * Artist fields: name, discipline, hometown, major, gradYear, photoCredit,
- *   links: { nexus, instagram, youtube, spotify, appleMusic, imdb, linkedin },
+ *   links: { website, nexus, instagram, youtube, spotify, appleMusic, imdb, linkedin },
  *   photo: { image, original, crop }   (data URLs; crop = { x, y, size } as fractions of the original)
  *   resume: { name, data } to upload a PDF, or null to remove it
  */
 
 const DISCIPLINES = ["Actor", "Musician", "Filmmaker"];
-const LINK_KEYS = ["nexus", "instagram", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
+const LINK_KEYS = ["website", "nexus", "instagram", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
 const RESERVED_HANDLES = ["admin", "index", "artists", "all", "featured"];
 const ALLOWED_ORIGINS = [
   "https://collegeartistsconnect.org",
@@ -290,7 +290,7 @@ function cleanYear(v) {
   if (!/^\d{4}$/.test(s) || +s < 1950 || +s > 2100) throw new HttpError(400, "Enter a four-digit graduation year.");
   return s;
 }
-const LINK_LABELS = { nexus: "Nexus", instagram: "Instagram", youtube: "YouTube", spotify: "Spotify", appleMusic: "Apple Music", imdb: "IMDb", linkedin: "LinkedIn" };
+const LINK_LABELS = { website: "Website", nexus: "Nexus", instagram: "Instagram", youtube: "YouTube", spotify: "Spotify", appleMusic: "Apple Music", imdb: "IMDb", linkedin: "LinkedIn" };
 function cleanLink(v, key) {
   const s = String(v || "").trim();
   if (!s) return "";
