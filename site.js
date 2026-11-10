@@ -105,3 +105,7 @@ function fillFooterYear() {
   if (yr) yr.textContent = new Date().getFullYear();
 }
 document.addEventListener("DOMContentLoaded", fillFooterYear);
+
+/* When you change site.js or site.css, bump the ?v= number where every page loads them
+   (index.html, 404.html, admin/index.html and each chapter's index.html and admin/index.html)
+   so visitors' browsers fetch the new copy instead of a saved old one. */
