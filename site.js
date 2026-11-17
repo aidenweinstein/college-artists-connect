@@ -32,7 +32,7 @@ const chapters = [
   {
     name: "Trojan Artists Connect",
     slug: "usc",
-    talent: false,
+    talent: true,
     school: "University of Southern California",
     location: "Los Angeles, CA",
     instagram: "https://www.instagram.com/trojanartistsconnect/",
@@ -50,7 +50,12 @@ const chapters = [
   // },
 ];
 
-const DISCIPLINES = ["Actor", "Musician", "Filmmaker"];
+/* Artist types. An artist can have more than one. */
+const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
+const TYPE_PLURALS = { Actor: "Actors", Artist: "Artists", Filmmaker: "Filmmakers", Producer: "Producers" };
+const typesOf = a => (a && a.disciplines) || [];
+const isType = (a, d) => typesOf(a).includes(d);
+const typesLabel = a => typesOf(a).join(" · ");
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const orderedChapters = () => [...chapters].sort((a, b) => (b.founding === true) - (a.founding === true) || a.school.localeCompare(b.school));
@@ -70,12 +75,12 @@ const artistUrl = (slug, a) => `/${encodeURIComponent(slug)}/${encodeURIComponen
 
 /* Profile links, in the order they appear on artist pages and in admin. */
 const ARTIST_LINKS = [
-  ["website", "Website"], ["nexus", "Nexus"], ["instagram", "Instagram"], ["youtube", "YouTube"], ["spotify", "Spotify"],
+  ["website", "Website"], ["nexus", "Nexus"], ["instagram", "Instagram"], ["tiktok", "TikTok"], ["youtube", "YouTube"], ["spotify", "Spotify"],
   ["appleMusic", "Apple Music"], ["imdb", "IMDb"], ["linkedin", "LinkedIn"],
 ];
 
 /* Returns { artists: [...in All Artists order], featured: [...artists in Featured order],
-   frontPage: { Actor: artist, Musician: artist, Filmmaker: artist } (homepage picks) }. */
+   frontPage: { Actor: artist, Artist: artist, Filmmaker: artist, Producer: artist } (homepage picks) }. */
 async function fetchArtists(slug) {
   const res = await fetch(`${TALENT_API}/schools/${encodeURIComponent(slug)}/artists`);
   if (!res.ok) throw new Error(`Couldn't load artists (${res.status})`);
@@ -86,12 +91,12 @@ async function fetchArtists(slug) {
   return { artists: data.artists, featured: data.featured.map(id => byId[id]).filter(Boolean), frontPage };
 }
 
-/* One actor, one musician and one filmmaker for the homepage: the admins' front-page picks.
+/* One artist per type for the homepage: the admins' front-page picks.
    If a discipline has no pick yet, the first featured artist (then the first artist) fills in. */
 function picksByDiscipline({ artists, featured, frontPage = {} }) {
   return DISCIPLINES.map(d => ({
     discipline: d,
-    artist: frontPage[d] || featured.find(a => a.discipline === d) || artists.find(a => a.discipline === d) || null,
+    artist: frontPage[d] || featured.find(a => isType(a, d)) || artists.find(a => isType(a, d)) || null,
   }));
 }
 

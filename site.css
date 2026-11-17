@@ -290,3 +290,17 @@ section.apply { padding-bottom: 16px; }
 
 /* Talent page section titles have no description underneath */
 #featured h2, #all-artists h2 { margin-bottom: 24px; }
+
+/* Four artist types: Actor, Artist, Filmmaker, Producer */
+.talent-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.front-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.types { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 8px; }
+.types legend { font-size: 14px; padding: 0; margin-bottom: 8px; }
+.types .hint { color: var(--muted); font-size: 13px; margin-left: 6px; }
+.type-options { display: flex; flex-wrap: wrap; gap: 8px 18px; padding-top: 6px; }
+@media (max-width: 980px) {
+  .front-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .talent-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
+}

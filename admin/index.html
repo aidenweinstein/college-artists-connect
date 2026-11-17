@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=10">
-<script src="/site.js?v=10"></script>
+<link rel="stylesheet" href="/site.css?v=11">
+<script src="/site.js?v=11"></script>
 </head>
 <body>
   <div class="wrap">
@@ -23,9 +23,18 @@
 
   <main class="admin-main">
     <div class="wrap">
-      <h1 style="font-size:clamp(28px,4vw,40px);margin:0 0 6px">Chapter admin</h1>
-      <p class="sub">Choose your chapter to log in.</p>
-      <div class="school-list" id="school-list"></div>
+      <div class="panel login-panel">
+        <h1 class="admin-h1">Chapter admin</h1>
+        <p class="sub" style="margin-bottom:20px">Enter your chapter's admin password.</p>
+        <form class="admin-form" id="login-form">
+          <input type="text" name="username" autocomplete="username" value="College Artists Connect admin" readonly hidden>
+          <label>Password
+            <input type="password" id="password" autocomplete="current-password" required>
+          </label>
+          <button class="btn action" type="submit">Log in</button>
+          <p class="notice" id="login-notice" role="status" aria-live="polite"></p>
+        </form>
+      </div>
     </div>
   </main>
 
@@ -36,13 +45,38 @@
   </div>
 
 <script>
-  const withTalent = orderedChapters().filter(c => c.talent);
-  document.getElementById("school-list").innerHTML = withTalent.length
-    ? withTalent.map(c => `
-        <a href="/${esc(c.slug)}/admin/" style="--sec-bg:${esc(c.colors.bg)};--sec-fg:${esc(c.colors.fg)}">
-          <span>${esc(c.name)}</span><span aria-hidden="true">→</span>
-        </a>`).join("")
-    : '<p class="empty-note">No chapters have admin pages yet.</p>';
+  /* One login for every chapter: the talent API works out the chapter from the password,
+     then this page sends the admin to that chapter's admin page (e.g. /usc/admin/). */
+  const $ = id => document.getElementById(id);
+  const note = (text, isError = false) => { $("login-notice").textContent = text; $("login-notice").classList.toggle("error", isError); };
+  const destination = slug => { const c = chapterBySlug(slug); return c && c.talent ? `/${c.slug}/admin/` : null; };
+
+  $("login-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector("button");
+    btn.disabled = true;
+    note("Checking…");
+    try {
+      let res;
+      try {
+        res = await fetch(`${TALENT_API}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: $("password").value }),
+        });
+      } catch { throw new Error("Couldn't reach the server. Check your connection and try again."); }
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Something went wrong. Please try again.");
+      const to = destination(body.slug);
+      if (!to) throw new Error("That chapter doesn't have an admin page yet.");
+      setAdminToken(body.slug, body.token);
+      location.replace(to);
+    } catch (err) {
+      note(err.message, true);
+      btn.disabled = false;
+    }
+  });
+  $("password").focus();
 </script>
 </body>
 </html>

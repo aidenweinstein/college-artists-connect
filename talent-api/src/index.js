@@ -11,26 +11,29 @@
  *
  * Public:
  *   GET    /schools/:slug/artists          { artists: [...in All Artists order], featured: [ids in Featured order],
- *                                            frontPage: { Actor: id, Musician: id, Filmmaker: id } }
+ *                                            frontPage: { Actor: id, Artist: id, Filmmaker: id, Producer: id } }
  *   GET    /photos/:id                     a photo
  *   GET    /files/:id                      a resume (PDF)
  * Admin (Authorization: Bearer <token>):
+ *   POST   /login                          { password } -> { slug, token }   one login for every chapter:
+ *                                          the password decides which chapter you're signed in to
  *   POST   /schools/:slug/login            { password } -> { token }
  *   POST   /schools/:slug/artists          artist fields -> artist
- *   PATCH  /schools/:slug/artists/:id      any artist fields, plus { featured: true|false, frontPage: true|false }
- *                                          (frontPage = the homepage pick for the artist's discipline; one per discipline,
- *                                           and front-page artists are always featured)
+ *   PATCH  /schools/:slug/artists/:id      any artist fields, plus { featured: true|false }
+ *   PUT    /schools/:slug/front-page       { discipline, id } sets the homepage pick for a type (id null clears it).
+ *                                          One pick per type; front-page artists are always featured.
  *   DELETE /schools/:slug/artists/:id
  *   PUT    /schools/:slug/order            { all: [ids], featured: [ids] }
  *
- * Artist fields: name, discipline, hometown, major, gradYear, photoCredit,
- *   links: { website, nexus, instagram, youtube, spotify, appleMusic, imdb, linkedin },
+ * Artist fields: name, disciplines (one or more types), hometown, major, gradYear, photoCredit,
+ *   links: { website, nexus, instagram, tiktok, youtube, spotify, appleMusic, imdb, linkedin },
  *   photo: { image, original, crop }   (data URLs; crop = { x, y, size } as fractions of the original)
  *   resume: { name, data } to upload a PDF, or null to remove it
  */
 
-const DISCIPLINES = ["Actor", "Musician", "Filmmaker"];
-const LINK_KEYS = ["website", "nexus", "instagram", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
+const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
+const RENAMED = { Musician: "Artist" };   // old type names -> current ones
+const LINK_KEYS = ["website", "nexus", "instagram", "tiktok", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
 const RESERVED_HANDLES = ["admin", "index", "artists", "all", "featured"];
 const ALLOWED_ORIGINS = [
   "https://collegeartistsconnect.org",
@@ -67,6 +70,7 @@ async function route(request, env) {
 
   if (parts[0] === "photos" && parts.length === 2 && method === "GET") return getFile(env, "photo", parts[1]);
   if (parts[0] === "files" && parts.length === 2 && method === "GET") return getFile(env, "file", parts[1]);
+  if (parts[0] === "login" && parts.length === 1 && method === "POST") return login(request, env, null);
 
   if (parts[0] === "schools" && parts.length >= 3) {
     const slug = parts[1];
@@ -83,6 +87,7 @@ async function route(request, env) {
     if (parts[2] === "artists" && parts.length === 4 && method === "PATCH") return updateArtist(request, env, slug, parts[3]);
     if (parts[2] === "artists" && parts.length === 4 && method === "DELETE") return deleteArtist(env, slug, parts[3]);
     if (parts[2] === "order" && parts.length === 3 && method === "PUT") return setOrder(request, env, slug);
+    if (parts[2] === "front-page" && parts.length === 3 && method === "PUT") return setFrontPage(request, env, slug);
   }
   throw new HttpError(404, "Not found.");
 }
@@ -93,7 +98,7 @@ async function route(request, env) {
    frontPage: { discipline: id } }. */
 async function loadSchool(env, slug) {
   const school = await env.TALENT.get(`school:${slug}`, "json");
-  if (school) { school.frontPage ||= {}; return school; }
+  if (school) return normalize(school);
 
   // First load after the upgrade: convert the old format (a plain list with featured flags).
   const legacy = await env.TALENT.get(`artists:${slug}`, "json");
@@ -115,11 +120,33 @@ async function loadSchool(env, slug) {
       added: old.added,
     });
   }
-  const school2 = { artists, featured: sorted.filter(a => a.featured).map(a => a.id), frontPage: {} };
+  const school2 = normalize({ artists, featured: sorted.filter(a => a.featured).map(a => a.id), frontPage: {} });
   await saveSchool(env, slug, school2);
   await env.TALENT.delete(`artists:${slug}`);
   return school2;
 }
+/* Brings older records up to date: one type -> a list of types, "Musician" -> "Artist". */
+function normalize(school) {
+  school.frontPage ||= {};
+  for (const a of school.artists) {
+    if (!Array.isArray(a.disciplines)) a.disciplines = a.discipline ? [a.discipline] : [];
+    delete a.discipline;
+    a.disciplines = orderTypes(a.disciplines.map(d => RENAMED[d] || d));
+    if (!a.disciplines.length) a.disciplines = ["Actor"];
+  }
+  const fp = {};
+  for (const [d, id] of Object.entries(school.frontPage)) {
+    const type = RENAMED[d] || d;
+    const a = school.artists.find(x => x.id === id);
+    if (a && a.disciplines.includes(type)) fp[type] = id;
+  }
+  school.frontPage = fp;
+  return school;
+}
+function orderTypes(list) {
+  return DISCIPLINES.filter(d => list.includes(d));
+}
+
 async function saveSchool(env, slug, school) {
   await env.TALENT.put(`school:${slug}`, JSON.stringify(school));
 }
@@ -131,24 +158,35 @@ function publicView(school) {
   };
 }
 function withFeatured(school, artist) {
-  return {
-    ...artist,
-    featured: school.featured.includes(artist.id),
-    frontPage: school.frontPage[artist.discipline] === artist.id,
-  };
+  const frontPageFor = Object.keys(school.frontPage).filter(d => school.frontPage[d] === artist.id);
+  return { ...artist, featured: school.featured.includes(artist.id), frontPage: frontPageFor.length > 0, frontPageFor };
 }
-/* Keeps the tiers consistent: front-page artists are featured, and each discipline has at most one. */
-function setTiers(school, artist, { featured, frontPage }) {
+/* Keeps the tiers consistent: front-page artists are featured, and each pick still has that type. */
+function setTiers(school, artist, { featured }) {
   const id = artist.id;
   for (const d of Object.keys(school.frontPage)) {
-    if (school.frontPage[d] === id && (d !== artist.discipline || frontPage === false || featured === false)) delete school.frontPage[d];
-  }
-  if (frontPage === true) {
-    school.frontPage[artist.discipline] = id;
-    if (!school.featured.includes(id)) school.featured.push(id);
+    if (school.frontPage[d] === id && (!artist.disciplines.includes(d) || featured === false)) delete school.frontPage[d];
   }
   if (featured === true && !school.featured.includes(id)) school.featured.push(id);
   if (featured === false) school.featured = school.featured.filter(f => f !== id);
+}
+
+async function setFrontPage(request, env, slug) {
+  const body = await readJson(request);
+  const d = RENAMED[body.discipline] || body.discipline;
+  if (!DISCIPLINES.includes(d)) throw new HttpError(400, "Unknown artist type.");
+  const school = await loadSchool(env, slug);
+  if (body.id) {
+    const artist = school.artists.find(a => a.id === body.id);
+    if (!artist) throw new HttpError(404, "That artist no longer exists.");
+    if (!artist.disciplines.includes(d)) throw new HttpError(400, `${artist.name} isn't listed as ${d === "Actor" ? "an" : "a"} ${d.toLowerCase()}.`);
+    school.frontPage[d] = artist.id;
+    if (!school.featured.includes(artist.id)) school.featured.push(artist.id);
+  } else {
+    delete school.frontPage[d];
+  }
+  await saveSchool(env, slug, school);
+  return json(publicView(school));
 }
 
 /* ---------- Artists ---------- */
@@ -160,7 +198,7 @@ async function addArtist(request, env, slug) {
     id: crypto.randomUUID(),
     handle: "",
     name: cleanName(body.name),
-    discipline: cleanDiscipline(body.discipline),
+    disciplines: cleanDisciplines(body.disciplines ?? body.discipline),
     hometown: "", major: "", gradYear: "", photoCredit: "",
     links: blankLinks(),
     photo: null, photoOriginal: null, crop: null,
@@ -170,7 +208,7 @@ async function addArtist(request, env, slug) {
   artist.handle = uniqueHandle(artist.name, school.artists);
   await applyFields(env, artist, body);
   school.artists.push(artist);
-  setTiers(school, artist, { featured: body.featured === true ? true : undefined, frontPage: body.frontPage === true ? true : undefined });
+  setTiers(school, artist, { featured: body.featured === true ? true : undefined });
   await saveSchool(env, slug, school);
   return json(withFeatured(school, artist), 201);
 }
@@ -188,12 +226,9 @@ async function updateArtist(request, env, slug, id) {
       artist.handle = uniqueHandle(name, school.artists.filter(a => a.id !== id));
     }
   }
-  if ("discipline" in body) artist.discipline = cleanDiscipline(body.discipline);
+  if ("disciplines" in body || "discipline" in body) artist.disciplines = cleanDisciplines(body.disciplines ?? body.discipline);
   await applyFields(env, artist, body);
-  setTiers(school, artist, {
-    featured: "featured" in body ? body.featured === true : undefined,
-    frontPage: "frontPage" in body ? body.frontPage === true : undefined,
-  });
+  setTiers(school, artist, { featured: "featured" in body ? body.featured === true : undefined });
   await saveSchool(env, slug, school);
   return json(withFeatured(school, artist));
 }
@@ -275,9 +310,10 @@ function cleanName(v) {
   if (s.length > 80) throw new HttpError(400, "That name is too long.");
   return s;
 }
-function cleanDiscipline(v) {
-  if (!DISCIPLINES.includes(v)) throw new HttpError(400, "Choose Actor, Musician or Filmmaker.");
-  return v;
+function cleanDisciplines(v) {
+  const list = orderTypes((Array.isArray(v) ? v : [v]).map(d => RENAMED[d] || d));
+  if (!list.length) throw new HttpError(400, "Choose at least one type: Actor, Artist, Filmmaker or Producer.");
+  return list;
 }
 function cleanText(v, max, label) {
   const s = String(v ?? "").trim().replace(/\s+/g, " ");
@@ -290,7 +326,7 @@ function cleanYear(v) {
   if (!/^\d{4}$/.test(s) || +s < 1950 || +s > 2100) throw new HttpError(400, "Enter a four-digit graduation year.");
   return s;
 }
-const LINK_LABELS = { website: "Website", nexus: "Nexus", instagram: "Instagram", youtube: "YouTube", spotify: "Spotify", appleMusic: "Apple Music", imdb: "IMDb", linkedin: "LinkedIn" };
+const LINK_LABELS = { website: "Website", nexus: "Nexus", instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", spotify: "Spotify", appleMusic: "Apple Music", imdb: "IMDb", linkedin: "LinkedIn" };
 function cleanLink(v, key) {
   const s = String(v || "").trim();
   if (!s) return "";
@@ -350,6 +386,8 @@ async function getFile(env, kind, id) {
 
 /* ---------- Admin login ---------- */
 
+/* With a slug, checks that chapter's password. Without one (the shared /admin login),
+   finds the chapter whose password matches. Chapter passwords must all be different. */
 async function login(request, env, slug) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const rlKey = `rl:${ip}`;
@@ -358,14 +396,19 @@ async function login(request, env, slug) {
 
   const { password } = await readJson(request);
   const passwords = JSON.parse(env.ADMIN_PASSWORDS || "{}");
-  const expected = passwords[slug];
-  if (!expected || !(await sameString(String(password || ""), expected, env))) {
+  const given = String(password || "");
+  let match = null;
+  for (const [s, expected] of Object.entries(passwords)) {
+    if (slug && s !== slug) continue;
+    if (expected && (await sameString(given, String(expected), env)) && !match) match = s;
+  }
+  if (!match) {
     await env.TALENT.put(rlKey, String(attempts + 1), { expirationTtl: 900 });
     throw new HttpError(401, "Wrong password.");
   }
   const exp = Date.now() + TOKEN_HOURS * 3600 * 1000;
-  const payload = b64url(JSON.stringify({ slug, exp }));
-  return json({ token: `${payload}.${await sign(payload, env)}`, expires: exp });
+  const payload = b64url(JSON.stringify({ slug: match, exp }));
+  return json({ slug: match, token: `${payload}.${await sign(payload, env)}`, expires: exp });
 }
 
 async function requireAdmin(request, env, slug) {

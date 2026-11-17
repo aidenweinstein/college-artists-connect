@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Talent · College Artists Connect</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-512.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css?v=11">
+<script src="/site.js?v=11"></script>
+</head>
+<body>
+  <!-- This page works for any chapter: it reads the chapter from its folder name (e.g. /ut-austin/).
+       To give another chapter a talent page, copy this folder and rename it to that chapter's slug. -->
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="/">College Artists <span>Connect</span></a>
+      <nav>
+        <a class="link" href="#featured">Featured</a>
+        <a class="link" href="#all-artists">All Artists</a>
+      </nav>
+    </header>
+  </div>
+
+  <div class="talent-hero" id="hero">
+    <div class="wrap">
+      <a class="back" href="/">← All chapters</a>
+      <div class="tag">Talent</div>
+      <h1 id="chapter-name">&nbsp;</h1>
+      <p class="school" id="chapter-school">&nbsp;</p>
+    </div>
+  </div>
+
+  <section id="featured">
+    <div class="wrap">
+      <h2>Featured</h2>
+      <div class="featured-grid" id="featured-grid"></div>
+    </div>
+  </section>
+
+  <section id="all-artists">
+    <div class="wrap">
+      <h2>All Artists</h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter by type"></div>
+      <div class="featured-grid" id="all-grid"></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <footer>
+      <span>© <span id="yr"></span> College Artists Connect · collegeartistsconnect.org</span>
+      <a class="admin-link" href="admin/">Admin</a>
+    </footer>
+  </div>
+
+<script>
+  const chapter = chapterBySlug(currentSlug());
+  let data = { artists: [], featured: [] };
+  let filter = "All";
+
+  if (!chapter) {
+    location.replace("/");
+  } else {
+    document.title = `${chapter.name} Talent · College Artists Connect`;
+    const hero = document.getElementById("hero");
+    hero.style.setProperty("--sec-bg", chapter.colors.bg);
+    hero.style.setProperty("--sec-fg", chapter.colors.fg);
+    document.getElementById("chapter-name").textContent = chapter.name;
+    document.getElementById("chapter-school").textContent = `${chapter.school} · ${chapter.location}`;
+    renderFilters();
+    render();
+    fetchArtists(chapter.slug)
+      .then(d => { data = d; render(); })
+      .catch(err => {
+        console.warn(err);
+        document.getElementById("all-grid").innerHTML = '<p class="empty-note">Couldn\'t load artists right now. Please try again later.</p>';
+      });
+  }
+
+  function card(a) {
+    return `<a class="artist-card" href="${artistUrl(chapter.slug, a)}">
+      <div class="photo">${photoHtml(a, a.name)}</div>
+      <div class="name">${esc(a.name)}</div>
+      <div class="role">${esc(typesLabel(a))}</div>
+    </a>`;
+  }
+  function placeholders() {
+    return DISCIPLINES.map(d => `<div class="artist-card empty">
+      <div class="photo">${SILHOUETTE}</div>
+      <div class="name">Coming soon</div>
+      <div class="role">${d}</div></div>`).join("");
+  }
+
+  function render() {
+    document.getElementById("featured-grid").innerHTML =
+      data.featured.length ? data.featured.map(card).join("") : placeholders();
+
+    const list = data.artists.filter(a => filter === "All" || isType(a, filter));
+    document.getElementById("all-grid").innerHTML = list.length
+      ? list.map(card).join("")
+      : `<p class="empty-note">${data.artists.length ? "No artists in this category yet." : "No artists yet. Check back soon."}</p>`;
+  }
+
+  function renderFilters() {
+    const el = document.getElementById("filters");
+    const labels = { All: "All", ...TYPE_PLURALS };
+    el.innerHTML = ["All", ...DISCIPLINES].map(d =>
+      `<button class="chip" type="button" data-d="${d}" aria-pressed="${d === filter}">${labels[d]}</button>`).join("");
+    el.onclick = e => {
+      const b = e.target.closest("button[data-d]");
+      if (!b) return;
+      filter = b.dataset.d;
+      renderFilters();
+      render();
+    };
+  }
+</script>
+</body>
+</html>

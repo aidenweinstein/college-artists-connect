@@ -11,12 +11,12 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=10">
-<script src="/site.js?v=10"></script>
+<link rel="stylesheet" href="/site.css?v=11">
+<script src="/site.js?v=11"></script>
 </head>
 <body>
   <!-- Works for any chapter: it reads the chapter from its folder name (e.g. /ut-austin/admin/).
-       Passwords are checked by the talent API, never stored in this page. -->
+       Admins log in once at /admin/, which sends them here; logged-out visitors are sent back there. -->
   <div class="wrap">
     <header class="nav">
       <a class="logo" href="/">College Artists <span>Connect</span></a>
@@ -26,24 +26,6 @@
 
   <main class="admin-main">
     <div class="wrap">
-
-      <!-- Login. The form is only put on the page while logged out, so the browser's password
-           manager doesn't mistake saving an artist for another login. -->
-      <div id="login-view" hidden></div>
-      <template id="login-template">
-        <div class="panel login-panel">
-          <h1 class="admin-h1" id="login-title">Admin</h1>
-          <p class="sub" style="margin-bottom:20px">Enter your chapter's admin password.</p>
-          <form class="admin-form" id="login-form">
-            <input type="text" name="username" id="login-username" autocomplete="username" readonly hidden>
-            <label>Password
-              <input type="password" id="password" autocomplete="current-password" required>
-            </label>
-            <button class="btn action" type="submit">Log in</button>
-            <p class="notice" id="login-notice" role="status" aria-live="polite"></p>
-          </form>
-        </div>
-      </template>
 
       <!-- Artist lists -->
       <div id="list-view" hidden>
@@ -58,7 +40,7 @@
 
         <div class="panel">
           <h2 class="panel-h2">Front page</h2>
-          <p class="sub" style="margin-bottom:16px">One artist per discipline for the homepage.</p>
+          <p class="sub" style="margin-bottom:16px">One artist per type for the homepage.</p>
           <div class="front-slots" id="front-slots"></div>
         </div>
 
@@ -83,13 +65,10 @@
               <label>Name
                 <input type="text" name="name" maxlength="80" required>
               </label>
-              <label>Discipline
-                <select name="discipline" required>
-                  <option value="Actor">Actor</option>
-                  <option value="Musician">Musician</option>
-                  <option value="Filmmaker">Filmmaker</option>
-                </select>
-              </label>
+              <fieldset class="types">
+                <legend>Type <span class="hint">Choose all that apply</span></legend>
+                <div class="type-options" id="type-options"></div>
+              </fieldset>
             </div>
 
             <fieldset class="field-group">
@@ -188,7 +167,7 @@
       });
     } catch { throw new Error("Couldn't reach the server. Check your connection and try again."); }
     const body = await res.json().catch(() => ({}));
-    if (res.status === 401 && path !== "/login") { setAdminToken(slug, null); show("login"); }
+    if (res.status === 401) { setAdminToken(slug, null); goToLogin(); }
     if (!res.ok) throw new Error(body.error || "Something went wrong. Please try again.");
     return body;
   }
@@ -198,36 +177,13 @@
   }
 
   function show(view) {
-    for (const v of ["login", "list", "editor"]) $(`${v}-view`).hidden = v !== view;
-    if (view === "login") renderLogin(); else $("login-view").innerHTML = "";
+    for (const v of ["list", "editor"]) $(`${v}-view`).hidden = v !== view;
     window.scrollTo(0, 0);
   }
 
-  /* ---------- Login ---------- */
-  function renderLogin() {
-    const view = $("login-view");
-    if (view.querySelector("#login-form")) return;
-    view.replaceChildren($("login-template").content.cloneNode(true));
-    $("login-title").textContent = `${chapter.name} admin`;
-    $("login-username").value = `${chapter.name} admin`;   // lets password managers label the saved password
-    $("login-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const btn = e.target.querySelector("button");
-      btn.disabled = true;
-      note("login-notice", "Checking…");
-      try {
-        const { token } = await api("/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
-        setAdminToken(slug, token);
-        // Reload so the browser treats this as a finished login (it may offer to save the password now, once).
-        location.replace(location.href);
-      } catch (err) {
-        note("login-notice", err.message, true);
-        btn.disabled = false;
-      }
-    });
-    $("password").focus();
-  }
-  $("logout").addEventListener("click", () => { setAdminToken(slug, null); show("login"); });
+  /* ---------- Login (shared page at /admin/) ---------- */
+  function goToLogin() { location.replace("/admin/"); }
+  $("logout").addEventListener("click", () => { setAdminToken(slug, null); goToLogin(); });
 
   /* ---------- Lists ---------- */
   async function load() {
@@ -256,7 +212,7 @@
       <div class="thumb">${photoHtml(a, "")}</div>
       <div class="who">
         <div><a href="${artistUrl(slug, a)}" target="_blank" rel="noopener" class="plain-link">${esc(a.name)}</a>${kind !== "front" && a.frontPage ? '<span class="badge">Front page</span>' : kind === "all" && featured ? '<span class="badge">Featured</span>' : ""}</div>
-        <div class="role">${esc(a.discipline)}</div>
+        <div class="role">${esc(typesLabel(a))}</div>
       </div>
       <div class="actions">${actions}</div>
     </div>`;
@@ -265,12 +221,12 @@
   function renderFrontPage() {
     $("front-slots").innerHTML = DISCIPLINES.map(d => {
       const pick = data.frontPage[d];
-      const options = data.artists.filter(a => a.discipline === d);
+      const options = data.artists.filter(a => isType(a, d));
       return `<div class="front-slot">
         <div class="thumb">${photoHtml(pick, "")}</div>
         <label>${d}
           <select data-discipline="${d}" ${options.length ? "" : "disabled"}>
-            <option value="">${options.length ? "Not chosen" : `No ${d.toLowerCase()}s yet`}</option>
+            <option value="">${options.length ? "Not chosen" : `No ${TYPE_PLURALS[d].toLowerCase()} yet`}</option>
             ${options.map(a => `<option value="${esc(a.id)}" ${pick && pick.id === a.id ? "selected" : ""}>${esc(a.name)}</option>`).join("")}
           </select>
         </label>
@@ -282,14 +238,9 @@
     const sel = e.target.closest("select[data-discipline]");
     if (!sel) return;
     const d = sel.dataset.discipline;
-    const current = data.frontPage[d];
     sel.disabled = true;
     try {
-      if (sel.value) {
-        await api(`/artists/${sel.value}`, { method: "PATCH", body: JSON.stringify({ frontPage: true }) });
-      } else if (current) {
-        await api(`/artists/${current.id}`, { method: "PATCH", body: JSON.stringify({ frontPage: false }) });
-      }
+      await api("/front-page", { method: "PUT", body: JSON.stringify({ discipline: d, id: sel.value || null }) });
       await load();
       const pick = data.frontPage[d];
       note("list-notice", pick ? `${pick.name} is now the front-page ${d.toLowerCase()}.` : `No front-page ${d.toLowerCase()} chosen.`);
@@ -377,6 +328,8 @@
   $("add-artist").addEventListener("click", () => openEditor(null));
 
   /* ---------- Editor ---------- */
+  $("type-options").innerHTML = DISCIPLINES.map(d =>
+    `<label class="check"><input type="checkbox" name="type" value="${d}"> ${d}</label>`).join("");
   $("link-fields").innerHTML = ARTIST_LINKS.map(([k, label]) =>
     `<label>${label}<input type="text" name="link-${k}" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="${k === "nexus" ? "nexusbylac.com/…" : k === "website" ? "yourname.com" : "Paste a link"}"></label>`).join("");
 
@@ -395,7 +348,7 @@
     closeCropper();
     if (artist) {
       f.name.value = artist.name;
-      f.discipline.value = artist.discipline;
+      for (const box of f.querySelectorAll('input[name="type"]')) box.checked = isType(artist, box.value);
       f.photoCredit.value = artist.photoCredit || "";
       f.hometown.value = artist.hometown || "";
       f.major.value = artist.major || "";
@@ -441,12 +394,13 @@
     e.preventDefault();
     const f = e.target;
     if (!f.name.value.trim()) return note("editor-notice", "Enter the artist's name.", true);
+    if (!f.querySelector('input[name="type"]:checked')) return note("editor-notice", "Choose at least one type.", true);
     if (f.gradYear.value && !/^\d{4}$/.test(f.gradYear.value.trim())) return note("editor-notice", "Enter a four-digit graduation year.", true);
     if (!$("cropper").hidden) return note("editor-notice", "Finish cropping the photo first (Use this crop).", true);
 
     const body = {
       name: f.name.value,
-      discipline: f.discipline.value,
+      disciplines: [...f.querySelectorAll('input[name="type"]:checked')].map(b => b.value),
       photoCredit: f.photoCredit.value,
       hometown: f.hometown.value,
       major: f.major.value,
@@ -641,7 +595,7 @@
   if (chapter) {
     document.title = `${chapter.name} Admin · College Artists Connect`;
     $("admin-title").textContent = `${chapter.name} admin`;
-    getAdminToken(slug) ? start() : show("login");
+    getAdminToken(slug) ? start() : goToLogin();
   }
 </script>
 </body>
