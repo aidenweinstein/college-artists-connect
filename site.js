@@ -52,6 +52,9 @@ const chapters = [
 
 /* Artist types. An artist can have more than one. */
 const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
+/* The types that get a homepage pick (one each). Producers appear only on talent pages. */
+const FRONT_PAGE_TYPES = ["Actor", "Artist", "Filmmaker"];
+const isFrontPage = a => ((a && a.frontPageFor) || []).some(d => FRONT_PAGE_TYPES.includes(d));
 const TYPE_PLURALS = { Actor: "Actors", Artist: "Artists", Filmmaker: "Filmmakers", Producer: "Producers" };
 const typesOf = a => (a && a.disciplines) || [];
 const isType = (a, d) => typesOf(a).includes(d);
@@ -80,21 +83,21 @@ const ARTIST_LINKS = [
 ];
 
 /* Returns { artists: [...in All Artists order], featured: [...artists in Featured order],
-   frontPage: { Actor: artist, Artist: artist, Filmmaker: artist, Producer: artist } (homepage picks) }. */
+   frontPage: { Actor: artist, Artist: artist, Filmmaker: artist } (homepage picks) }. */
 async function fetchArtists(slug) {
   const res = await fetch(`${TALENT_API}/schools/${encodeURIComponent(slug)}/artists`);
   if (!res.ok) throw new Error(`Couldn't load artists (${res.status})`);
   const data = await res.json();
   const byId = Object.fromEntries(data.artists.map(a => [a.id, a]));
   const frontPage = {};
-  for (const [d, id] of Object.entries(data.frontPage || {})) if (byId[id]) frontPage[d] = byId[id];
+  for (const [d, id] of Object.entries(data.frontPage || {})) if (byId[id] && FRONT_PAGE_TYPES.includes(d)) frontPage[d] = byId[id];
   return { artists: data.artists, featured: data.featured.map(id => byId[id]).filter(Boolean), frontPage };
 }
 
 /* One artist per type for the homepage: the admins' front-page picks.
    If a discipline has no pick yet, the first featured artist (then the first artist) fills in. */
 function picksByDiscipline({ artists, featured, frontPage = {} }) {
-  return DISCIPLINES.map(d => ({
+  return FRONT_PAGE_TYPES.map(d => ({
     discipline: d,
     artist: frontPage[d] || featured.find(a => isType(a, d)) || artists.find(a => isType(a, d)) || null,
   }));

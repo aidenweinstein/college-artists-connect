@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/PragmaticaExt-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/site.css?v=11">
-<script src="/site.js?v=11"></script>
+<link rel="stylesheet" href="/site.css?v=12">
+<script src="/site.js?v=12"></script>
 </head>
 <body>
   <!-- Works for any chapter: it reads the chapter from its folder name (e.g. /ut-austin/admin/).
@@ -211,7 +211,7 @@
       </div>
       <div class="thumb">${photoHtml(a, "")}</div>
       <div class="who">
-        <div><a href="${artistUrl(slug, a)}" target="_blank" rel="noopener" class="plain-link">${esc(a.name)}</a>${kind !== "front" && a.frontPage ? '<span class="badge">Front page</span>' : kind === "all" && featured ? '<span class="badge">Featured</span>' : ""}</div>
+        <div><a href="${artistUrl(slug, a)}" target="_blank" rel="noopener" class="plain-link">${esc(a.name)}</a>${kind !== "front" && isFrontPage(a) ? '<span class="badge">Front page</span>' : kind === "all" && featured ? '<span class="badge">Featured</span>' : ""}</div>
         <div class="role">${esc(typesLabel(a))}</div>
       </div>
       <div class="actions">${actions}</div>
@@ -219,7 +219,7 @@
   }
 
   function renderFrontPage() {
-    $("front-slots").innerHTML = DISCIPLINES.map(d => {
+    $("front-slots").innerHTML = FRONT_PAGE_TYPES.map(d => {
       const pick = data.frontPage[d];
       const options = data.artists.filter(a => isType(a, d));
       return `<div class="front-slot">
@@ -268,7 +268,7 @@
         all: data.artists.map(a => a.id), featured: data.featured.map(a => a.id) }) });
       const byId = Object.fromEntries(res.artists.map(a => [a.id, a]));
       const frontPage = {};
-      for (const [d, fid] of Object.entries(res.frontPage || {})) if (byId[fid]) frontPage[d] = byId[fid];
+      for (const [d, fid] of Object.entries(res.frontPage || {})) if (byId[fid] && FRONT_PAGE_TYPES.includes(d)) frontPage[d] = byId[fid];
       data = { artists: res.artists, featured: res.featured.map(id => byId[id]).filter(Boolean), frontPage };
       note("list-notice", "Order saved.");
     } catch (err) {

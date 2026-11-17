@@ -20,7 +20,7 @@
  *   POST   /schools/:slug/login            { password } -> { token }
  *   POST   /schools/:slug/artists          artist fields -> artist
  *   PATCH  /schools/:slug/artists/:id      any artist fields, plus { featured: true|false }
- *   PUT    /schools/:slug/front-page       { discipline, id } sets the homepage pick for a type (id null clears it).
+ *   PUT    /schools/:slug/front-page       { discipline, id } sets the homepage pick for Actor, Artist or Filmmaker (id null clears it).
  *                                          One pick per type; front-page artists are always featured.
  *   DELETE /schools/:slug/artists/:id
  *   PUT    /schools/:slug/order            { all: [ids], featured: [ids] }
@@ -32,6 +32,7 @@
  */
 
 const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
+const FRONT_PAGE_TYPES = ["Actor", "Artist", "Filmmaker"];   // types that get a homepage pick
 const RENAMED = { Musician: "Artist" };   // old type names -> current ones
 const LINK_KEYS = ["website", "nexus", "instagram", "tiktok", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
 const RESERVED_HANDLES = ["admin", "index", "artists", "all", "featured"];
@@ -138,7 +139,7 @@ function normalize(school) {
   for (const [d, id] of Object.entries(school.frontPage)) {
     const type = RENAMED[d] || d;
     const a = school.artists.find(x => x.id === id);
-    if (a && a.disciplines.includes(type)) fp[type] = id;
+    if (a && FRONT_PAGE_TYPES.includes(type) && a.disciplines.includes(type)) fp[type] = id;
   }
   school.frontPage = fp;
   return school;
@@ -174,7 +175,7 @@ function setTiers(school, artist, { featured }) {
 async function setFrontPage(request, env, slug) {
   const body = await readJson(request);
   const d = RENAMED[body.discipline] || body.discipline;
-  if (!DISCIPLINES.includes(d)) throw new HttpError(400, "Unknown artist type.");
+  if (!FRONT_PAGE_TYPES.includes(d)) throw new HttpError(400, "The front page has one actor, one artist and one filmmaker.");
   const school = await loadSchool(env, slug);
   if (body.id) {
     const artist = school.artists.find(a => a.id === body.id);
