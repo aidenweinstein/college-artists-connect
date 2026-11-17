@@ -23,7 +23,7 @@ const chapters = [
   {
     name: "Cal Artists Connect",
     slug: "berkeley",
-    talent: false,
+    talent: true,
     school: "UC Berkeley",
     location: "Berkeley, CA",
     instagram: "https://www.instagram.com/calartistsconnect/",
@@ -51,11 +51,11 @@ const chapters = [
 ];
 
 /* Artist types. An artist can have more than one. */
-const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
-/* The types that get a homepage pick (one each). Producers appear only on talent pages. */
-const FRONT_PAGE_TYPES = ["Actor", "Artist", "Filmmaker"];
+const DISCIPLINES = ["Actor", "Musician", "Band", "Filmmaker", "Producer"];
+/* The types that get a homepage pick (one each). Bands and producers appear only on talent pages. */
+const FRONT_PAGE_TYPES = ["Actor", "Musician", "Filmmaker"];
 const isFrontPage = a => ((a && a.frontPageFor) || []).some(d => FRONT_PAGE_TYPES.includes(d));
-const TYPE_PLURALS = { Actor: "Actors", Artist: "Artists", Filmmaker: "Filmmakers", Producer: "Producers" };
+const TYPE_PLURALS = { Actor: "Actors", Musician: "Musicians", Band: "Bands", Filmmaker: "Filmmakers", Producer: "Producers" };
 const typesOf = a => (a && a.disciplines) || [];
 const isType = (a, d) => typesOf(a).includes(d);
 const typesLabel = a => typesOf(a).join(" · ");
@@ -83,7 +83,7 @@ const ARTIST_LINKS = [
 ];
 
 /* Returns { artists: [...in All Artists order], featured: [...artists in Featured order],
-   frontPage: { Actor: artist, Artist: artist, Filmmaker: artist } (homepage picks) }. */
+   frontPage: { Actor: artist, Musician: artist, Filmmaker: artist } (homepage picks) }. */
 async function fetchArtists(slug) {
   const res = await fetch(`${TALENT_API}/schools/${encodeURIComponent(slug)}/artists`);
   if (!res.ok) throw new Error(`Couldn't load artists (${res.status})`);

@@ -291,8 +291,8 @@ section.apply { padding-bottom: 16px; }
 /* Talent page section titles have no description underneath */
 #featured h2, #all-artists h2 { margin-bottom: 24px; }
 
-/* Artist types: Actor, Artist, Filmmaker, Producer. The homepage row and front-page picks
-   show only Actor, Artist and Filmmaker (three columns, set above). */
+/* Artist types: Actor, Musician, Band, Filmmaker, Producer. The homepage row and front-page picks
+   show only Actor, Musician and Filmmaker (three columns, set above). */
 .types { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 8px; }
 .types legend { font-size: 14px; padding: 0; margin-bottom: 8px; }
 .types .hint { color: var(--muted); font-size: 13px; margin-left: 6px; }

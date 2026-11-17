@@ -11,7 +11,7 @@
  *
  * Public:
  *   GET    /schools/:slug/artists          { artists: [...in All Artists order], featured: [ids in Featured order],
- *                                            frontPage: { Actor: id, Artist: id, Filmmaker: id, Producer: id } }
+ *                                            frontPage: { Actor: id, Musician: id, Filmmaker: id } }
  *   GET    /photos/:id                     a photo
  *   GET    /files/:id                      a resume (PDF)
  * Admin (Authorization: Bearer <token>):
@@ -31,9 +31,9 @@
  *   resume: { name, data } to upload a PDF, or null to remove it
  */
 
-const DISCIPLINES = ["Actor", "Artist", "Filmmaker", "Producer"];
-const FRONT_PAGE_TYPES = ["Actor", "Artist", "Filmmaker"];   // types that get a homepage pick
-const RENAMED = { Musician: "Artist" };   // old type names -> current ones
+const DISCIPLINES = ["Actor", "Musician", "Band", "Filmmaker", "Producer"];
+const FRONT_PAGE_TYPES = ["Actor", "Musician", "Filmmaker"];   // types that get a homepage pick
+const RENAMED = { Artist: "Musician" };   // old type names -> current ones ("Artist" was briefly used for musicians)
 const LINK_KEYS = ["website", "nexus", "instagram", "tiktok", "youtube", "spotify", "appleMusic", "imdb", "linkedin"];
 const RESERVED_HANDLES = ["admin", "index", "artists", "all", "featured"];
 const ALLOWED_ORIGINS = [
@@ -126,7 +126,7 @@ async function loadSchool(env, slug) {
   await env.TALENT.delete(`artists:${slug}`);
   return school2;
 }
-/* Brings older records up to date: one type -> a list of types, "Musician" -> "Artist". */
+/* Brings older records up to date: one type -> a list of types, "Artist" -> "Musician". */
 function normalize(school) {
   school.frontPage ||= {};
   for (const a of school.artists) {
@@ -175,7 +175,7 @@ function setTiers(school, artist, { featured }) {
 async function setFrontPage(request, env, slug) {
   const body = await readJson(request);
   const d = RENAMED[body.discipline] || body.discipline;
-  if (!FRONT_PAGE_TYPES.includes(d)) throw new HttpError(400, "The front page has one actor, one artist and one filmmaker.");
+  if (!FRONT_PAGE_TYPES.includes(d)) throw new HttpError(400, "The front page has one actor, one musician and one filmmaker.");
   const school = await loadSchool(env, slug);
   if (body.id) {
     const artist = school.artists.find(a => a.id === body.id);
@@ -313,7 +313,7 @@ function cleanName(v) {
 }
 function cleanDisciplines(v) {
   const list = orderTypes((Array.isArray(v) ? v : [v]).map(d => RENAMED[d] || d));
-  if (!list.length) throw new HttpError(400, "Choose at least one type: Actor, Artist, Filmmaker or Producer.");
+  if (!list.length) throw new HttpError(400, "Choose at least one type: Actor, Musician, Band, Filmmaker or Producer.");
   return list;
 }
 function cleanText(v, max, label) {
